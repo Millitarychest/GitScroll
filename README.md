@@ -6,4 +6,4 @@ Take notes, write documentation or host a blog GitScroll enables you to create f
 
 Features : 
 
-Password protect your blog with the help of [staticrypt](https://github.com/robinmoisson/staticrypt) 
+* Password protect your blog with the help of [staticrypt](https://github.com/robinmoisson/staticrypt) 

@@ -1,6 +1,102 @@
 import subprocess
+import sys
+from Mdparser import parseMD, Markdown ,Paragraph, List, Text, Emphasis, Bold, Header
+
+def render(markdown):
+    if not isinstance(markdown, Markdown):
+        return
+    html = ''
+    for block in markdown.blocks:
+        if isinstance(block, Paragraph):
+            html += render_paragraph(block)
+        elif isinstance(block, List):
+            html += render_list(block)
+        else:
+            raise TypeError('Unknown block {!r}'.format(block))
+    return html
+
+def render_paragraph(paragraph, in_list=False):
+    html = ''
+    for item in paragraph.items:
+        if isinstance(item, Text):
+            html += render_text(item)
+        elif isinstance(item, List):
+            html += render_list(item, in_list=True)
+        elif isinstance(item, Header):
+            html += render_header(item)
+        elif isinstance(item, Emphasis):
+            html += render_emphasis(item)
+        elif isinstance(item, Bold):
+            html += render_bold(item)
+        elif isinstance(item, Paragraph):
+            html += render_paragraph(item, in_list=in_list)
+        else:
+            raise TypeError('Unknown block {!r}'.format(paragraph))
+    return html if in_list else '<p>%s</p>\n' % html
+
+def render_list(l, in_list=False):
+    html = ''
+    if not in_list:
+        for item in l.items:
+            html += '\t<li>\n\t\t' + render_paragraph(item, in_list=True) + '\n\t</li>\n'
+    else:
+        for item in l.items:
+            html += '\t\t\t<li>' + render_paragraph(item, in_list=True) + '</li>\n'
+    return '\n<ul>\n%s</ul>\n' % html if not in_list else '\n\t\t<ul>\n%s\t\t</ul>' % html
+
+def render_header(header):
+    level = header.level
+    html = ''
+    for item in header.items:
+        if isinstance(item, Emphasis):
+            emphasis = render_emphasis(item)
+            html += emphasis
+        if isinstance(item, Bold):
+            bold = render_bold(item)
+            html += bold
+        else:  # item is Text
+            html += render_text(item)
+    return '\n<h%d>%s</h%d>\n' % (level, html, level)
+
+
+def render_emphasis(emphasis):
+    return '<em>%s</em>' % (emphasis.text)
+
+
+def render_bold(bold):
+    return '<b>%s</b>' % (bold.text)
+
+
+def render_text(text):
+    return text.text
+
+
+
 
 def encfile(filename, pw):
     # Encrypt file
-    Htfilename = filename.split(".")[0] + ".html"
-    subprocess.run(["staticrypt",filename, pw ,"-o", Htfilename])
+    subprocess.run(["staticrypt",filename, pw ,"-o", filename])
+
+
+
+
+if __name__ == '__main__':
+    try:
+        pw = ""
+        filename = sys.argv[1]
+        with open(filename, 'r') as f:
+            rawMD = f.readlines()
+            if rawMD[0].startswith("password:"):
+                pw = rawMD[0].split(":")[1].strip()
+                rawMD = rawMD[1:]
+            rawMD = ''.join(rawMD)
+            markdown = parseMD(rawMD)
+            with open('%s.html' % filename.split('.')[0], 'w') as html_f:
+                html_f.write(render(markdown))
+            if pw != "":
+                encfile('%s.html' % filename.split('.')[0], pw)
+
+
+
+    except IOError:
+        print ("File not found")
