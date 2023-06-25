@@ -1,6 +1,6 @@
 import subprocess
 import sys
-from Mdparser import parseMD, Markdown ,Paragraph, List, Text, Emphasis, Bold, Header
+from Mdparser import parseMD, Markdown ,Paragraph, Link, List, Text, Emphasis, Bold, Header
 
 def render(markdown):
     if not isinstance(markdown, Markdown):
@@ -28,11 +28,16 @@ def render_paragraph(paragraph, in_list=False):
             html += render_emphasis(item)
         elif isinstance(item, Bold):
             html += render_bold(item)
+        elif isinstance(item, Link):
+            html += render_link(item)
         elif isinstance(item, Paragraph):
             html += render_paragraph(item, in_list=in_list)
-        else:
+        elif item != "":
             raise TypeError('Unknown block {!r}'.format(paragraph))
     return html if in_list else '<p>%s</p>\n' % html
+
+def render_link(link):
+    return '<a href="%s">%s</a>' % (link.url, link.text)
 
 def render_list(l, in_list=False):
     html = ''
@@ -56,7 +61,10 @@ def render_header(header):
             html += bold
         else:  # item is Text
             html += render_text(item)
-    return '\n<h%d>%s</h%d>\n' % (level, html, level)
+    if(level > 1):
+        return '\n<h%d>%s</h%d>\n' % (level, html, level)
+    else:
+        return '\n<h%d>%s</h%d>\n<hr>' % (level, html, level)
 
 
 def render_emphasis(emphasis):

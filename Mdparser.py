@@ -3,7 +3,7 @@ import re
 
 def parseMD(rawMD):
     #getBlocks
-    #print( Markdown([parseBlock(block) for block in split_into_blocks(rawMD)]) )
+    print( Markdown([parseBlock(block) for block in split_into_blocks(rawMD)]) )
     return Markdown([parseBlock(block) for block in split_into_blocks(rawMD)])
 
 def split_into_blocks(string):
@@ -23,20 +23,22 @@ def parseBlock(block):
         # '^' should match at the beginning of the string and at the beginning of each line
         items = [item.strip() for item in re.split(r'^[-|\*]\s+', block, flags=re.M)[1:]]  
         lists = List(list(map(parse_paragraph, items)))
-
+        #print(lists.items[0].items[0])
         for item in lists.items:
-            match = re.search(r'\s+[-|\*]\s+', item.items[0].text)
-            if match is not None:
-                inner_items = [inner_item.strip() for inner_item in re.split(r'\s+[-|\*]\s+', item.items[0].text, flags=re.M)]
-                item.items = list()
-                item.items.append(parse_paragraph(inner_items[0]))
-                inner_lists = List(map(parse_paragraph, inner_items[1:]))
-                item.items.append(inner_lists)
+            if not isinstance(item.items[0], Paragraph):
+                match = re.search(r'\s+[-|\*]\s+', item.items[0].text)
+                if match is not None:
+                    inner_items = [inner_item.strip() for inner_item in re.split(r'\s+[-|\*]\s+', item.items[0].text, flags=re.M)]
+                    item.items = list()
+                    item.items.append(parse_paragraph(inner_items[0]))
+                    inner_lists = List(map(parse_paragraph, inner_items[1:]))
+                    item.items.append(inner_lists)
         return lists
     return parse_paragraph(block)
 
 def parse_paragraph(block):
-    parts = re.split('(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*)', block)  # split out Emphasis and Bold
+    inlines_regex = '(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*)'
+    parts = re.split(inlines_regex, block)  # split out Emphasis and Bold
     return Paragraph(list(map(parse_inlines, parts)))
 
 def parse_inlines(string):
@@ -46,8 +48,29 @@ def parse_inlines(string):
         match = re.match(regexp, string)
         if match is not None:
             return klass(match.group(1))
-    return Text(string)
+    return parseLink(string)
     
+
+def parseLink(text):
+    # Anything that isn't a square closing bracket
+    name_regex = "[^]]+"
+    # http:// or https:// followed by anything but a closing paren
+    url_regex = "http[s]?://[^)]+"
+
+    markup_regex = '\[({0})]\(\s*({1})\s*\)'.format(name_regex, url_regex)
+
+    linkPara = Paragraph(list())
+
+    matches = re.findall(markup_regex, text)
+    if len(matches) > 0:
+        link_text = text[:text.index('[')]
+        if link_text != '':
+            linkPara.items.append(Text(link_text))
+        linkPara.items.append(Link(matches[0][0], matches[0][1]))
+        linkPara.items.append(parseLink(text[text.index(')') + 1:]))
+    return linkPara if len(linkPara.items) > 0 else Text(text)
+
+
 def findHeader(block):
     headerMatch = re.findall(r'^#{1,6}', block, flags=re.M)
     headerItems = re.split(r'^#{1,6}', block, flags=re.M)[1:]
@@ -113,9 +136,17 @@ class Header(object):
 
     def __repr__(self):
         return 'Header({},{!r})'.format(self.level, self.items)
+    
+class Link(object):
+    def __init__(self, text, url):
+        self.text = text
+        self.url = url
+
+    def __repr__(self):
+        return 'Link({!r})'.format(self.text)
 
 
 INLINE_ELEMENTS = [
     (r'\*\*([^\*]*)\*\*', Bold),
-    (r'\*([^\*]*)\*', Emphasis)
+    (r'\*([^\*]*)\*', Emphasis),
 ]

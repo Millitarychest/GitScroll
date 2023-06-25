@@ -4,6 +4,16 @@ A markdown and git based static site cms.
 
 Take notes, write documentation or host a blog GitScroll enables you to create fast and easy online presence.
 
-Features : 
+### Features : 
 
-* Password protect your blog with the help of [staticrypt](https://github.com/robinmoisson/staticrypt) 
+* Password protect your blog with the help of [staticrypt](https://github.com/robinmoisson/staticrypt)
+
+### Usage:
+
+```
+python3 gitscroll.py <filename>
+```
+
+
+
+
