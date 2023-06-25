@@ -2,6 +2,7 @@ import subprocess
 import sys
 import shutil
 from Mdparser import parseMD, Markdown, Image, CodeBlock ,Paragraph, Link, List, Text, Emphasis, Bold, Header
+from html import escape
 
 def render(markdown):
     if not isinstance(markdown, Markdown):
@@ -58,7 +59,7 @@ def render_link(link):
     return '<a href="%s">%s</a>' % (link.url, link.text)
 
 def render_codeblock(codeblock):
-    return '<pre><code class="language-%s">%s</code></pre>' % (codeblock.language ,codeblock.code)
+    return '<pre><code class="language-%s">%s</code></pre>' % (codeblock.language ,escape(codeblock.code))
 
 def render_list(l, in_list=False):
     html = ''
