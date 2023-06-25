@@ -3,7 +3,7 @@ import re
 
 def parseMD(rawMD):
     #getBlocks
-    print( Markdown([parseBlock(block) for block in split_into_blocks(rawMD)]) )
+    #print( Markdown([parseBlock(block) for block in split_into_blocks(rawMD)]) )
     return Markdown([parseBlock(block) for block in split_into_blocks(rawMD)])
 
 def split_into_blocks(string):
@@ -34,10 +34,28 @@ def parseBlock(block):
                     inner_lists = List(map(parse_paragraph, inner_items[1:]))
                     item.items.append(inner_lists)
         return lists
+    # get code blocks with lang
+    match = re.match(r'^```(\w+)\n([\s\S]+?)\n```$', block, re.DOTALL)
+    if match is not None:
+        language = match.group(1)
+        code = match.group(2)
+        return CodeBlock(code, language)
+
+    # get code blocks without language
+    if block.startswith("```") and block.endswith("```"):
+        code = block.strip("`\n")
+        return CodeBlock(code)
+    # get images
+    match = re.match(r'^!\[([^\]]+)\]\(([^)]+)\)$', block)
+    if match is not None:
+        alt_text = match.group(1)
+        image_url = match.group(2)
+        return Image(alt_text, image_url)
     return parse_paragraph(block)
 
 def parse_paragraph(block):
-    inlines_regex = '(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*)'
+    inlines_regex = '(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*|!\\[[^\\]]+\\]\\([^\\)]+\\))'
+    #inlines_regex = '(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*)'
     parts = re.split(inlines_regex, block)  # split out Emphasis and Bold
     return Paragraph(list(map(parse_inlines, parts)))
 
@@ -48,8 +66,17 @@ def parse_inlines(string):
         match = re.match(regexp, string)
         if match is not None:
             return klass(match.group(1))
+    match = re.match(r'!\[([^\]]+)\]\(([^)]+)\)', string)
+    if match is not None:
+        alt_text = match.group(1)
+        image_url = match.group(2)
+        return Image(alt_text, image_url)
     return parseLink(string)
-    
+
+def parseCode(text):
+    # ``` followed by anything but a newline, followed by ```	
+    code_regex = r'```([^`]+)```'
+    return text
 
 def parseLink(text):
     # Anything that isn't a square closing bracket
@@ -144,6 +171,22 @@ class Link(object):
 
     def __repr__(self):
         return 'Link({!r})'.format(self.text)
+
+class CodeBlock(object):
+    def __init__(self, code, language="javascript"):
+        self.code = code
+        self.language = language
+
+    def __repr__(self):
+        return 'CodeBlock({!r})'.format(self.code)
+    
+class Image(object):
+    def __init__(self, alt, url):
+        self.alt = alt
+        self.url = url
+
+    def __repr__(self):
+        return 'Image({!r})'.format(self.alt)
 
 
 INLINE_ELEMENTS = [

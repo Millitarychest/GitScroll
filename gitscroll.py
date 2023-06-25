@@ -1,19 +1,35 @@
 import subprocess
 import sys
-from Mdparser import parseMD, Markdown ,Paragraph, Link, List, Text, Emphasis, Bold, Header
+import shutil
+from Mdparser import parseMD, Markdown, Image, CodeBlock ,Paragraph, Link, List, Text, Emphasis, Bold, Header
 
 def render(markdown):
     if not isinstance(markdown, Markdown):
         return
-    html = ''
+    html = '<head>\n\t<link rel="stylesheet" href="prism.css">\n</head>\n<body>\n'
     for block in markdown.blocks:
         if isinstance(block, Paragraph):
             html += render_paragraph(block)
         elif isinstance(block, List):
             html += render_list(block)
+        elif isinstance(block, CodeBlock):
+            html += render_codeblock(block)
+        elif isinstance(block, Image):
+            html += render_image(block)
         else:
             raise TypeError('Unknown block {!r}'.format(block))
+    html += '</body>\n<script src="prism.js"></script>'
     return html
+
+def render_image(block):
+    try:
+        moveImage(block.url)
+    except:
+        pass
+    return '<img src="%s" alt="%s">' % (block.url, block.alt)
+
+def moveImage(file):
+    shutil.copy(file, "./out/" + file)
 
 def render_paragraph(paragraph, in_list=False):
     html = ''
@@ -32,12 +48,17 @@ def render_paragraph(paragraph, in_list=False):
             html += render_link(item)
         elif isinstance(item, Paragraph):
             html += render_paragraph(item, in_list=in_list)
-        elif item != "":
+        elif isinstance(item, Image):
+            html += render_image(item)
+        else:
             raise TypeError('Unknown block {!r}'.format(paragraph))
     return html if in_list else '<p>%s</p>\n' % html
 
 def render_link(link):
     return '<a href="%s">%s</a>' % (link.url, link.text)
+
+def render_codeblock(codeblock):
+    return '<pre><code class="language-%s">%s</code></pre>' % (codeblock.language ,codeblock.code)
 
 def render_list(l, in_list=False):
     html = ''
@@ -85,7 +106,12 @@ def encfile(filename, pw):
     # Encrypt file
     subprocess.run(["staticrypt",filename, pw ,"-o", filename])
 
-
+def codeStyling():
+    # Code styling
+    shutil.copyfile("./utils/prism_dark.css", "./out/prism.css")
+    shutil.copyfile("./utils/prism_dark.js", "./out/prism.js")
+    #subprocess.run(["cp", "prism_light.css", "prism.css"])
+    #subprocess.run(["cp", "prism_light.js", "prism.js"])
 
 
 if __name__ == '__main__':
@@ -99,10 +125,11 @@ if __name__ == '__main__':
                 rawMD = rawMD[1:]
             rawMD = ''.join(rawMD)
             markdown = parseMD(rawMD)
-            with open('%s.html' % filename.split('.')[0], 'w') as html_f:
+            with open('./out/%s.html' % filename.split('.')[0], 'w') as html_f:
                 html_f.write(render(markdown))
             if pw != "":
-                encfile('%s.html' % filename.split('.')[0], pw)
+                encfile('./out/%s.html' % filename.split('.')[0], pw)
+            codeStyling()
 
 
 
