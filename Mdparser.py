@@ -6,8 +6,40 @@ def parseMD(rawMD):
     #print( Markdown([parseBlock(block) for block in split_into_blocks(rawMD)]) )
     return Markdown([parseBlock(block) for block in split_into_blocks(rawMD)])
 
+def contains_only_newlines(string):
+    return re.match(r'^\n*$', string) is not None
+
 def split_into_blocks(string):
-    return re.split(r'\n{2,}', string)
+    blocks =  re.split(r'\n{2,}', string)
+
+    codeblocks = re.findall(r'(```(\w+)\n([\n\s\S]*?)\n*```)', string, flags=re.M)
+
+
+
+    final_blocks = []
+    current_block = ''
+    codeBlockcounter = 0
+    was_code = 0
+    for index, block in enumerate(blocks):
+        if was_code == 0:
+            if block.startswith('```') and not block.endswith('```'):
+                #current_block = block
+                current_block = codeblocks[codeBlockcounter][0]
+                codeBlockcounter += 1
+                while not blocks[index].endswith('```'):
+                    #current_block += "\n"
+                    index += 1
+                    #current_block += blocks[index]
+                    was_code += 1
+                final_blocks.append(current_block)
+            else: 
+                if not contains_only_newlines(block):
+                    final_blocks.append(block)
+        else:
+            was_code -= 1
+
+    return final_blocks
+
 
 def parseBlock(block):
     #get headers

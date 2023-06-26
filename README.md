@@ -1,4 +1,4 @@
-password:test
+
 
 # GitScroll
 
@@ -18,12 +18,18 @@ Take notes, write documentation or host a blog GitScroll enables you to create f
 ```bash
  
 python3 gitscroll.py <filename>
- 
+
+
 ```
+
+### Dependencies:
+
+* [python3](https://www.python.org/)
+* [staticrypt](https://github.com/robinmoisson/staticrypt)
+
 
 ### Issues to solve
 
-* Codeblock fails if it includes completly empty line (For now use "\n " instead of "\n") 
 
 
 
