@@ -1,4 +1,4 @@
-import subprocess
+import os
 import sys
 import shutil
 from Mdparser import parseMD, Markdown, Image, CodeBlock ,Paragraph, Link, List, Text, Emphasis, Bold, Header
@@ -105,7 +105,9 @@ def render_text(text):
 
 def encfile(filename, pw):
     # Encrypt file
-    subprocess.run(["staticrypt",filename, pw ,"-o", filename])
+    cmd = "staticrypt .\out\README.html -p %s -d ./out --short" % pw
+    print(cmd)
+    os.system("staticrypt .\out\README.html -p %s -d ./out --short" % pw)
 
 def codeStyling():
     # Code styling
