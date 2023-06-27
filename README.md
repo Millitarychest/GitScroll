@@ -29,5 +29,6 @@ python3 gitscroll.py <filename>
 
 ### Issues to solve
 
+run markdown parse in blockquotes
 currently no ordered list support
 

@@ -154,21 +154,21 @@ wrap the text and put a <code class="language-javascript">&gt;</code> before eve
 <blockquote>This is a blockquote with two paragraphs. Lorem ipsum dolor sit amet,
 consectetuer adipiscing elit. Aliquam hendrerit mi posuere lectus.
 Vestibulum enim wisi, viverra nec, fringilla in, laoreet vitae, risus.
-Donec sit amet nisl. Aliquam semper ipsum sit amet velit. Suspendisse
+<br>Donec sit amet nisl. Aliquam semper ipsum sit amet velit. Suspendisse
 id sem consectetuer libero luctus adipiscing.
 </blockquote></blockquote><p>Blockquotes can be nested (i.e. a blockquote-in-a-blockquote) by
 adding additional levels of <code class="language-javascript">&gt;</code>:</p>
 <blockquote>This is the first level of quoting.
-<blockquote>This is nested blockquote.
-</blockquote>Back to the first level.
+<br><blockquote>This is nested blockquote.
+<br></blockquote>Back to the first level.
 </blockquote><p>Blockquotes can contain other Markdown elements, including headers, lists,
 and code blocks:</p>
 <blockquote>## This is a header.
-1.   This is the first list item.
-2.   This is the second list item.
-Here's some example code:
-return shell_exec("echo $input | $markdown_script");
-</blockquote></blockquote><p>Any decent text editor should make email-style quoting easy. For
+<br><blockquote>This is the first list item.
+This is the second list item.
+<br></blockquote>Here's some example code:
+<br><blockquote>return shell_exec("echo $input | $markdown_script");
+</blockquote></blockquote></blockquote><p>Any decent text editor should make email-style quoting easy. For
 example, with BBEdit, you can make a selection and choose Increase
 Quote Level from the Text menu.</p>
 <p>
@@ -322,7 +322,12 @@ to be indented <em>twice</em> -- 8 spaces or two tabs:</p>
 	</li>
 </ul>
 </p>
-<p>        <code goes here></p>
+<p><ul>
+	<li>
+		<code class="language-javascript">&lt;code goes here&gt;</code>
+	</li>
+</ul>
+</p>
 <p>
 <h3>Code Blocks</h3>
 </p>

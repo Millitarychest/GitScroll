@@ -47,8 +47,8 @@ def parse_block_quotes(lines):
     current_quote = ''
     was_quote = False
     for line in lines:
-        if re.sub(r"^(\s*\t*>+[\s*>*]*)", "", line) is not "":
-            quotes.append(BlockQuote(re.sub(r"^(\s*\t*>+[\s*>*]*)", "", line) + "\n", count_block_quotes(line)))
+        #if re.sub(r"^(\s*\t*>+[\s*>*]*)", "", line) is not "":
+        quotes.append(BlockQuote(re.sub(r"^(\s*\t*>+[\s*>*]*)", "", line) + "\n", count_block_quotes(line)))
     quotes.append(BlockQuote("", -1))
     
     return BlockQuotes(quotes)

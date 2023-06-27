@@ -101,8 +101,8 @@ and code blocks:
 
 > ## This is a header.
 > 
-> 1.   This is the first list item.
-> 2.   This is the second list item.
+> *   This is the first list item.
+> *   This is the second list item.
 > 
 > Here's some example code:
 > 
@@ -218,7 +218,7 @@ to be indented *twice* -- 8 spaces or two tabs:
 
 *   A list item with a code block:
 
-        <code goes here>
+* `<code goes here>`
 
 ### Code Blocks
 

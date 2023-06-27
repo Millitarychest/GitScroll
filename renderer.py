@@ -32,25 +32,28 @@ def render_blockQuote(block):
     itemInsert = ''
     curLevel = 0
     for item in block.items:
-
+        
         if isinstance(item, BlockQuote):
             if item.level == curLevel:
-                itemInsert += item.text
+                itemInsert += render_subBlockQuote(item)
             elif item.level > curLevel:
                 for i in range(item.level - curLevel):
-                    curLevel =+ 1
-                    itemInsert += "<blockquote>"
-                itemInsert += item.text
+                    if item.text != "\n":
+                        curLevel =+ 1
+                        itemInsert += "<blockquote>"
+                itemInsert += render_subBlockQuote(item)
             elif item.level < curLevel:
                 for i in range(curLevel - item.level):
-                    curLevel =- 1
-                    itemInsert += "</blockquote>"
-                itemInsert += item.text
-
-            
-
+                    if item.text != "\n":
+                        curLevel =- 1
+                        itemInsert += "</blockquote>"
+                itemInsert += render_subBlockQuote(item)
     return '<blockquote>%s</blockquote>' % itemInsert
-    
+
+def render_subBlockQuote(block):
+    if block.text == "\n":
+        return "<br>"
+    return block.text   
 
 def render_image(block):
     try:
