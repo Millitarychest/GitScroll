@@ -4,7 +4,7 @@
 
 A markdown and git based static site cms.
 
-Take notes, write documentation or host a blog GitScroll enables you to create fast and easy online presence.
+Take notes, write documentation or host a blog. GitScroll enables you to create fast and easy online presence.
 
 ### Features : 
 
@@ -29,8 +29,4 @@ python3 gitscroll.py <filename>
 
 
 ### Issues to solve
-
-
-
-
 

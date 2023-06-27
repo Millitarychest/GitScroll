@@ -3,7 +3,7 @@ import re
 
 def parseMD(rawMD):
     #getBlocks
-    #print( Markdown([parseBlock(block) for block in split_into_blocks(rawMD)]) )
+    print( Markdown([parseBlock(block) for block in split_into_blocks(rawMD)]) )
     return Markdown([parseBlock(block) for block in split_into_blocks(rawMD)])
 
 def contains_only_newlines(string):
@@ -32,13 +32,15 @@ def split_into_blocks(string):
                     #current_block += blocks[index]
                     was_code += 1
                 final_blocks.append(current_block)
+   
             else: 
                 if not contains_only_newlines(block):
                     final_blocks.append(block)
         else:
             was_code -= 1
-
+    
     return final_blocks
+
 
 
 def parseBlock(block):
@@ -50,22 +52,21 @@ def parseBlock(block):
             header.items = list(map(parse_inlines, parts))
         return block
     #get lists
-    match = re.match(r'^[-|\*]\s+', block)
+        
+    match = re.match(r'^\s*[-*]\s+', block)
     if match is not None:
-        # '^' should match at the beginning of the string and at the beginning of each line
-        items = [item.strip() for item in re.split(r'^[-|\*]\s+', block, flags=re.M)[1:]]  
-        lists = List(list(map(parse_paragraph, items)))
-        #print(lists.items[0].items[0])
-        for item in lists.items:
-            if not isinstance(item.items[0], Paragraph):
-                match = re.search(r'\s+[-|\*]\s+', item.items[0].text)
-                if match is not None:
-                    inner_items = [inner_item.strip() for inner_item in re.split(r'\s+[-|\*]\s+', item.items[0].text, flags=re.M)]
-                    item.items = list()
-                    item.items.append(parse_paragraph(inner_items[0]))
-                    inner_lists = List(map(parse_paragraph, inner_items[1:]))
-                    item.items.append(inner_lists)
+        lines = re.split(r'\n', block)
+        indents = [len(re.match(r'^\s*', line).group()) for line in lines]
+    
+        
+        if any(indent > 0 for indent in indents):
+            return parse_list_items(lines, indents)
+
+        
+        lists = parse_list_items(lines, [0])
         return lists
+    
+
     # get code blocks with lang
     match = re.match(r'^```(\w+)\n([\s\S]+?)\n```$', block, re.DOTALL)
     if match is not None:
@@ -86,7 +87,8 @@ def parseBlock(block):
     return parse_paragraph(block)
 
 def parse_paragraph(block):
-    inlines_regex = '(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*|!\\[[^\\]]+\\]\\([^\\)]+\\))'
+    inlines_regex = '(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*|!\\[[^\\]]+\\]\\([^\\)]+\\)|\\[[^\\]]+\\]\\([^\\)]+\\))'
+    #inlines_regex = '(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*|!\\[[^\\]]+\\]\\([^\\)]+\\))'
     #inlines_regex = '(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*)'
     parts = re.split(inlines_regex, block)  # split out Emphasis and Bold
     return Paragraph(list(map(parse_inlines, parts)))
@@ -97,13 +99,36 @@ def parse_inlines(string):
     for regexp, klass in INLINE_ELEMENTS:
         match = re.match(regexp, string)
         if match is not None:
-            return klass(match.group(1))
+            if klass == Link:
+                return klass(match.group(1), match.group(2))
+            else:
+                return klass(match.group(1))
     match = re.match(r'!\[([^\]]+)\]\(([^)]+)\)', string)
     if match is not None:
         alt_text = match.group(1)
         image_url = match.group(2)
         return Image(alt_text, image_url)
-    return parseLink(string)
+    return Text(string)
+    #return parseLink(string)
+
+
+
+def parse_list_items(items, indents):
+    lists = []
+    for item, indent in zip(items, indents):
+
+        if indent == 0:
+            lists.append(List([parse_paragraph(item.replace("*", "").strip())], 0))
+        else:
+            if len(lists) > 0:
+                lists[len(lists) - 1].items.append(List([parse_paragraph(item.replace("*", "").strip())], indent / 4))
+            else:
+                lists.append(List([List([parse_paragraph(item.replace("*", "").strip())])], indent / 4))
+    
+    return Paragraph(lists)
+
+
+   
 
 def parseCode(text):
     # ``` followed by anything but a newline, followed by ```	
@@ -157,8 +182,9 @@ class Paragraph(object):
 
 
 class List(object):
-    def __init__(self, items):
+    def __init__(self, items, level=0):
         self.items = items
+        self.level = level
 
     def __repr__(self):
         return 'List({!r})'.format(self.items)
@@ -224,4 +250,5 @@ class Image(object):
 INLINE_ELEMENTS = [
     (r'\*\*([^\*]*)\*\*', Bold),
     (r'\*([^\*]*)\*', Emphasis),
+    (r'\[([^\]]+)\]\(([^)]+)\)', Link),
 ]
