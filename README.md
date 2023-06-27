@@ -19,7 +19,6 @@ Take notes, write documentation or host a blog. GitScroll enables you to create 
  
 python3 gitscroll.py <filename>
 
-
 ```
 
 ### Dependencies:
@@ -29,4 +28,6 @@ python3 gitscroll.py <filename>
 
 
 ### Issues to solve
+
+currently no ordered list support
 

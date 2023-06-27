@@ -3,7 +3,7 @@ import re
 
 def parseMD(rawMD):
     #getBlocks
-    print( Markdown([parseBlock(block) for block in split_into_blocks(rawMD)]) )
+    #print( Markdown([parseBlock(block) for block in split_into_blocks(rawMD)]) )
     return Markdown([parseBlock(block) for block in split_into_blocks(rawMD)])
 
 def contains_only_newlines(string):
@@ -41,7 +41,26 @@ def split_into_blocks(string):
     
     return final_blocks
 
+def parse_block_quotes(lines):
+    
+    quotes = []
+    current_quote = ''
+    was_quote = False
+    for line in lines:
+        if re.sub(r"^(\s*\t*>+[\s*>*]*)", "", line) is not "":
+            quotes.append(BlockQuote(re.sub(r"^(\s*\t*>+[\s*>*]*)", "", line) + "\n", count_block_quotes(line)))
+    quotes.append(BlockQuote("", -1))
+    
+    return BlockQuotes(quotes)
 
+def count_block_quotes(line):
+    match = re.findall(r'^(\s*\t*>+[\s*>*]*)', line)
+    if match:
+        
+        matches = [matche.replace(" ", "") for matche in match]
+        return len(matches[0])- 1
+    else:
+        return 0
 
 def parseBlock(block):
     #get headers
@@ -51,9 +70,21 @@ def parseBlock(block):
             parts = re.split('(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*)', header.items)
             header.items = list(map(parse_inlines, parts))
         return block
+    
+    #get horizontal rules
+    match = re.match(r'(^-{3,})', block)
+    if match is not None:
+        return HorRule()
+    
+    #get block quotes
+    if block.startswith('>'):
+        lines = re.split(r'\n', block)
+        quotes = parse_block_quotes(lines)
+        return quotes
+    
     #get lists
         
-    match = re.match(r'^\s*[-*]\s+', block)
+    match = re.match(r'^\s*[-*+]\s+', block)
     if match is not None:
         lines = re.split(r'\n', block)
         indents = [len(re.match(r'^\s*', line).group()) for line in lines]
@@ -87,7 +118,7 @@ def parseBlock(block):
     return parse_paragraph(block)
 
 def parse_paragraph(block):
-    inlines_regex = '(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*|!\\[[^\\]]+\\]\\([^\\)]+\\)|\\[[^\\]]+\\]\\([^\\)]+\\))'
+    inlines_regex = '(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*|!\\[[^\\]]+\\]\\([^\\)]+\\)|\\[[^\\]]+\\]\\([^\\)]+\\)|`[^`]+`)'
     #inlines_regex = '(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*|!\\[[^\\]]+\\]\\([^\\)]+\\))'
     #inlines_regex = '(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*)'
     parts = re.split(inlines_regex, block)  # split out Emphasis and Bold
@@ -96,44 +127,61 @@ def parse_paragraph(block):
 def parse_inlines(string):
     '''Parse Emphasis and Bold
     '''
-    for regexp, klass in INLINE_ELEMENTS:
-        match = re.match(regexp, string)
+    #print(string)
+    if string is not None:
+        for regexp, klass in INLINE_ELEMENTS:
+            match = re.match(regexp, string)
+            if match is not None:
+                if klass == Link:
+                    return klass(match.group(1), match.group(2))
+                elif klass == CodeBlock:
+                    return klass(match.group(1), fullCode=False)
+                else:
+                    return klass(match.group(1))
+        match = re.match(r'!\[([^\]]+)\]\(([^)]+)\)', string)
         if match is not None:
-            if klass == Link:
-                return klass(match.group(1), match.group(2))
-            else:
-                return klass(match.group(1))
-    match = re.match(r'!\[([^\]]+)\]\(([^)]+)\)', string)
-    if match is not None:
-        alt_text = match.group(1)
-        image_url = match.group(2)
-        return Image(alt_text, image_url)
+            alt_text = match.group(1)
+            image_url = match.group(2)
+            return Image(alt_text, image_url)
     return Text(string)
     #return parseLink(string)
 
 
 
 def parse_list_items(items, indents):
+    while len(items) > len(indents):
+        indents.append(0)
+
     lists = []
     for item, indent in zip(items, indents):
-
         if indent == 0:
-            lists.append(List([parse_paragraph(item.replace("*", "").strip())], 0))
-        else:
-            if len(lists) > 0:
-                lists[len(lists) - 1].items.append(List([parse_paragraph(item.replace("*", "").strip())], indent / 4))
+            match = re.match(r'^\s*[-*+]\s+', item)
+            if match is not None:
+                lists.append(List([parse_paragraph(item.replace("*", "").replace("-", "").replace("+", "").strip())], 0))
             else:
-                lists.append(List([List([parse_paragraph(item.replace("*", "").strip())])], indent / 4))
-    
+                if len(lists) > 0:
+                    lists[len(lists) - 1].items[len(lists[len(lists) - 1].items) - 1].items.append(Text(item.replace("*", "").strip() + "\n"))
+                else:
+                    lists.append(List([parse_paragraph(item.replace("*", "").strip())]))
+        else:
+            match = re.match(r'^\s*[-*+]\s+', item)
+            if match is not None:
+                if len(lists) > 0:
+                    lists[len(lists) - 1].items.append(List([parse_paragraph(item.replace("*", "").strip())], indent / 4))
+                else:
+                    lists.append(List([List([parse_paragraph(item.replace("*", "").strip())])], indent / 4))
+            else:
+                if len(lists) > 0:
+                    indenters = "\t" * int(indent / 4)
+                    lists[len(lists) - 1].items[len(lists[len(lists) - 1].items) - 1].items.append(Text(indenters + item.replace("*", "").strip() + "\n"))
+                else:
+                    indenters = "\t" * int(indent / 4)
+                    lists.append(List([parse_paragraph(indenters + item.replace("*", "").strip())]))
+
     return Paragraph(lists)
 
 
-   
 
-def parseCode(text):
-    # ``` followed by anything but a newline, followed by ```	
-    code_regex = r'```([^`]+)```'
-    return text
 
 def parseLink(text):
     # Anything that isn't a square closing bracket
@@ -205,6 +253,12 @@ class Emphasis(object):
     def __repr__(self):
         return 'Emphasis({!r})'.format(self.text)
 
+class HorRule(object):
+    def __init__(self):
+        self.text = ""
+
+    def __repr__(self):
+        return 'Horizontal Rule({!r})'.format(self.text)
 
 class Bold(object):
     def __init__(self, text):
@@ -231,9 +285,10 @@ class Link(object):
         return 'Link({!r})'.format(self.text)
 
 class CodeBlock(object):
-    def __init__(self, code, language="javascript"):
+    def __init__(self, code, language="javascript", fullCode=True):
         self.code = code
         self.language = language
+        self.fullCode = fullCode
 
     def __repr__(self):
         return 'CodeBlock({!r})'.format(self.code)
@@ -246,9 +301,24 @@ class Image(object):
     def __repr__(self):
         return 'Image({!r})'.format(self.alt)
 
+class BlockQuote(object):
+    def __init__(self, text, level=0):
+        self.level = level
+        self.text = text
+
+    def __repr__(self):
+        return 'BlockQuote({},{!r})'.format(self.level,self.text)
+
+class BlockQuotes(object):
+    def __init__(self, quotes):
+        self.items = quotes
+
+    def __repr__(self):
+        return 'BlockQuotes({!r})'.format(self.items)
 
 INLINE_ELEMENTS = [
     (r'\*\*([^\*]*)\*\*', Bold),
     (r'\*([^\*]*)\*', Emphasis),
     (r'\[([^\]]+)\]\(([^)]+)\)', Link),
+    (r'`([^`]+)`', CodeBlock)
 ]

@@ -1,7 +1,7 @@
 import os
 import sys
 import shutil
-from Mdparser import parseMD, Markdown, Image, CodeBlock ,Paragraph, Link, List, Text, Emphasis, Bold, Header
+from Mdparser import parseMD, Markdown, Image, BlockQuotes, BlockQuote, CodeBlock ,Paragraph, Link, List, Text, Emphasis, Bold, Header, HorRule
 from html import escape
 
 def render(markdown):
@@ -19,10 +19,38 @@ def render(markdown):
             html += render_image(block)
         elif isinstance(block, List):
             html += render_list(block, in_list=True)
+        elif isinstance(block, HorRule):
+            html += "<hr>"
+        elif isinstance(block, BlockQuotes):
+            html += render_blockQuote(block)
         else:
             raise TypeError('Unknown block {!r}'.format(block))
     html += '</body>\n<script src="prism.js"></script>'
     return html
+
+def render_blockQuote(block):
+    itemInsert = ''
+    curLevel = 0
+    for item in block.items:
+
+        if isinstance(item, BlockQuote):
+            if item.level == curLevel:
+                itemInsert += item.text
+            elif item.level > curLevel:
+                for i in range(item.level - curLevel):
+                    curLevel =+ 1
+                    itemInsert += "<blockquote>"
+                itemInsert += item.text
+            elif item.level < curLevel:
+                for i in range(curLevel - item.level):
+                    curLevel =- 1
+                    itemInsert += "</blockquote>"
+                itemInsert += item.text
+
+            
+
+    return '<blockquote>%s</blockquote>' % itemInsert
+    
 
 def render_image(block):
     try:
@@ -51,6 +79,8 @@ def render_paragraph(paragraph, in_list=False):
             html += render_link(item)
         elif isinstance(item, Image):
             html += render_image(item)
+        elif isinstance(item, CodeBlock):
+            html += render_codeblock(item)
         else:
             raise TypeError('Unknown block {!r}'.format(paragraph))
     return html if in_list else '<p>%s</p>\n' % html
@@ -60,7 +90,10 @@ def render_link(link):
     return '<a href="%s">%s</a>' % (link.url, link.text)
 
 def render_codeblock(codeblock):
-    return '<pre><code class="language-%s">%s</code></pre>' % (codeblock.language ,escape(codeblock.code))
+    if codeblock.fullCode:
+        return '<pre><code class="language-%s">%s</code></pre>' % (codeblock.language ,escape(codeblock.code))
+    else:
+        return '<code class="language-%s">%s</code>' % (codeblock.language ,escape(codeblock.code))
 
 def render_list(l, in_list=False, indent_level=0):
     html = ''
@@ -73,14 +106,16 @@ def render_list(l, in_list=False, indent_level=0):
         items = l.items if isinstance(l.items, list) else [l.items]  # Ensure items is always a list
         
         for item in items:
-
-            if isinstance(item, List):
-                subindent = '\t' * (indent_level + 1)  # Indentation for nested lists
-                html += subindent + '<ul>\n'
-                html += render_list(item, in_list=True, indent_level=indent_level + 1)  # Recursive call for nested lists
-                html += subindent + '</ul>\n'
-            else:
-                html += indent + '\t<li>\n' + indent + '\t\t' + render_item(item) + '\n' + indent + '\t</li>\n'
+            if item is not None:
+                if isinstance(item, List):
+                    subindent = '\t' * (indent_level + 1)  # Indentation for nested lists
+                    html += subindent + '<ul>\n'
+                    html += render_list(item, in_list=True, indent_level=indent_level + 1)  # Recursive call for nested lists
+                    html += subindent + '</ul>\n'
+                else:
+                    itemText = render_item(item)
+                    if itemText != None:
+                        html += indent + '\t<li>\n' + indent + '\t\t' + render_item(item) + '\n' + indent + '\t</li>\n'
 
     if not in_list:
         html += indent + '</ul>\n'  # End of the outermost <ul> tag
@@ -89,12 +124,17 @@ def render_list(l, in_list=False, indent_level=0):
 
 
 def render_item(item):
-    if isinstance(item, Paragraph):
-        return render_paragraph(item, in_list=True)
-    elif isinstance(item, Link):
-        return render_link(item)
+
+    if type(item) == list:
+        for part in item:
+            render_item(part)
     else:
-        raise TypeError('Unknown item {!r}'.format(item))
+        if isinstance(item, Paragraph):
+            return render_paragraph(item, in_list=True)
+        elif isinstance(item, Link):
+            return render_link(item)
+        else:
+            raise TypeError('Unknown item {!r}'.format(item))
 
 
 

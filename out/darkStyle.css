@@ -17,6 +17,9 @@ a {
 table {
     border-color: #545b5e;
 }
+blockquote {
+    background: #2d2d2d;
+}
 ::placeholder {
     color: #b2aba1;
 }
