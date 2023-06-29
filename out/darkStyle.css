@@ -19,6 +19,7 @@ table {
 }
 blockquote {
     background: #2d2d2d;
+    padding: 10;
 }
 ::placeholder {
     color: #b2aba1;

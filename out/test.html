@@ -1,8 +1,6 @@
-<head>
+<div>
 	<link rel="stylesheet" href="prism.css">
 <link rel="stylesheet" href="darkStyle.css">
-</head>
-<body>
 <p>
 <h1>Markdown: Syntax</h1>
 <hr></p>
@@ -153,22 +151,24 @@ know how to create a blockquote in Markdown. It looks best if you hard
 wrap the text and put a <code class="language-javascript">&gt;</code> before every line:</p>
 <blockquote>This is a blockquote with two paragraphs. Lorem ipsum dolor sit amet,
 consectetuer adipiscing elit. Aliquam hendrerit mi posuere lectus.
-Vestibulum enim wisi, viverra nec, fringilla in, laoreet vitae, risus.
-<br>Donec sit amet nisl. Aliquam semper ipsum sit amet velit. Suspendisse
+Vestibulum enim wisi, viverra nec, fringilla in, laoreet vitae, risus.<br>Donec sit amet nisl. Aliquam semper ipsum sit amet velit. Suspendisse
 id sem consectetuer libero luctus adipiscing.
-</blockquote></blockquote><p>Blockquotes can be nested (i.e. a blockquote-in-a-blockquote) by
+<br></blockquote></blockquote><p>Blockquotes can be nested (i.e. a blockquote-in-a-blockquote) by
 adding additional levels of <code class="language-javascript">&gt;</code>:</p>
-<blockquote>This is the first level of quoting.
-<br><blockquote>This is nested blockquote.
+<blockquote>This is the first level of quoting.<br><blockquote>This is nested blockquote.
 <br></blockquote>Back to the first level.
-</blockquote><p>Blockquotes can contain other Markdown elements, including headers, lists,
+<br></blockquote></blockquote><p>Blockquotes can contain other Markdown elements, including headers, lists,
 and code blocks:</p>
-<blockquote>## This is a header.
-<br><blockquote>This is the first list item.
-This is the second list item.
-<br></blockquote>Here's some example code:
-<br><blockquote>return shell_exec("echo $input | $markdown_script");
-</blockquote></blockquote></blockquote><p>Any decent text editor should make email-style quoting easy. For
+<blockquote>
+<h2>This is a header.</h2>
+<br>	<li>
+		This is the first list item.
+	</li>
+	<li>
+		This is the second list item.
+	</li>
+<br>Here's some example code:<br><code class="language-javascript">return shell_exec(&quot;echo $input | $markdown_script&quot;);</code>
+<br></blockquote></blockquote><p>Any decent text editor should make email-style quoting easy. For
 example, with BBEdit, you can make a selection and choose Increase
 Quote Level from the Text menu.</p>
 <p>
@@ -228,20 +228,59 @@ Quote Level from the Text menu.</p>
 </ul>
 </p>
 <p>Ordered lists use numbers followed by periods:</p>
-<p>1.  Bird
-2.  McHale
-3.  Parish</p>
+<p><ol>
+	<li value="1.  ">
+		Bird
+	</li>
+</ol>
+<ol>
+	<li value="2.  ">
+		McHale
+	</li>
+</ol>
+<ol>
+	<li value="3.  ">
+		Parish
+	</li>
+</ol>
+</p>
 <p>It's important to note that the actual numbers you use to mark the
 list have no effect on the HTML output Markdown produces. The HTML
 Markdown produces from the above list is:</p>
 <p>If you instead wrote the list in Markdown like this:</p>
-<p>1.  Bird
-1.  McHale
-1.  Parish</p>
+<p><ol>
+	<li value="1.  ">
+		Bird
+	</li>
+</ol>
+<ol>
+	<li value="1.  ">
+		McHale
+	</li>
+</ol>
+<ol>
+	<li value="1.  ">
+		Parish
+	</li>
+</ol>
+</p>
 <p>or even:</p>
-<p>3. Bird
-1. McHale
-8. Parish</p>
+<p><ol>
+	<li value="3. ">
+		Bird
+	</li>
+</ol>
+<ol>
+	<li value="1. ">
+		McHale
+	</li>
+</ol>
+<ol>
+	<li value="8. ">
+		Parish
+	</li>
+</ol>
+</p>
 <p>you'd get the exact same HTML output. The point is, if you want to,
 you can use ordinal numbers in your ordered Markdown lists, so that
 the numbers in your source match the numbers in your published HTML.
@@ -279,13 +318,23 @@ viverra nec, fringilla in, laoreet vitae, risus.
 <p>List items may consist of multiple paragraphs. Each subsequent
 paragraph in a list item must be indented by either 4 spaces
 or one tab:</p>
-<p>1.  This is a list item with two paragraphs. Lorem ipsum dolor
-    sit amet, consectetuer adipiscing elit. Aliquam hendrerit
-    mi posuere lectus.</p>
+<p><ol>
+	<li value="1.  ">
+		This is a list item with two paragraphs. Lorem ipsum dolor	sit amet, consectetuer adipiscing elit. Aliquam hendrerit
+	mi posuere lectus.
+
+	</li>
+</ol>
+</p>
 <p>    Vestibulum enim wisi, viverra nec, fringilla in, laoreet
     vitae, risus. Donec sit amet nisl. Aliquam semper ipsum
     sit amet velit.</p>
-<p>2.  Suspendisse id sem consectetuer libero luctus adipiscing.</p>
+<p><ol>
+	<li value="2.  ">
+		Suspendisse id sem consectetuer libero luctus adipiscing.
+	</li>
+</ol>
+</p>
 <p>It looks nice if you indent every line of the subsequent
 paragraphs, but here again, Markdown will allow you to be
 lazy:</p>
@@ -380,5 +429,5 @@ HTML <code class="language-javascript">&lt;em&gt;</code> tag; double <code class
 Unlike a pre-formatted code block, a code span indicates code within a
 normal paragraph. For example:</p>
 <p>Use the <code class="language-javascript">printf()</code> function.</p>
-</body>
+</div>
 <script src="prism.js"></script>

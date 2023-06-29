@@ -7,7 +7,7 @@ from html import escape
 def render(markdown):
     if not isinstance(markdown, Markdown):
         return
-    html = '<head>\n\t<link rel="stylesheet" href="prism.css">\n<link rel="stylesheet" href="darkStyle.css">\n</head>\n<body>\n'
+    html = '<div>\n\t<link rel="stylesheet" href="prism.css">\n<link rel="stylesheet" href="darkStyle.css">\n'
     for block in markdown.blocks:
         if isinstance(block, Paragraph):
             html += render_paragraph(block)
@@ -25,36 +25,53 @@ def render(markdown):
             html += render_blockQuote(block)
         else:
             raise TypeError('Unknown block {!r}'.format(block))
-    html += '</body>\n<script src="prism.js"></script>'
+    html += '</div>\n<script src="prism.js"></script>'
     return html
 
-def render_blockQuote(block):
+def render_blockQuote(block, nested=False):
     itemInsert = ''
     curLevel = 0
-    for item in block.items:
-        
-        if isinstance(item, BlockQuote):
-            if item.level == curLevel:
-                itemInsert += render_subBlockQuote(item)
-            elif item.level > curLevel:
-                for i in range(item.level - curLevel):
-                    if item.text != "\n":
-                        curLevel =+ 1
-                        itemInsert += "<blockquote>"
-                itemInsert += render_subBlockQuote(item)
-            elif item.level < curLevel:
-                for i in range(curLevel - item.level):
-                    if item.text != "\n":
-                        curLevel =- 1
-                        itemInsert += "</blockquote>"
+    if not nested:
+        for item in block.items:
+            
+            if isinstance(item, BlockQuote):
+                if item.level == curLevel:
+                    itemInsert += render_subBlockQuote(item)
+                elif item.level > curLevel:
+                    for i in range(item.level - curLevel):
+                        if item.text != "\n":
+                            curLevel =+ 1
+                            itemInsert += "<blockquote>"
+                    itemInsert += render_subBlockQuote(item)
+                elif item.level < curLevel:
+                    for i in range(curLevel - item.level):
+                        if item.text != "\n":
+                            curLevel =- 1
+                            itemInsert += "</blockquote>"
+                    itemInsert += render_subBlockQuote(item)
+    else:
+        for item in block.items:
+            if isinstance(item, BlockQuote):
                 itemInsert += render_subBlockQuote(item)
     return '<blockquote>%s</blockquote>' % itemInsert
 
+
+def render_subBlockQuote(block):
+    html = ''
+    for item in block.text:
+        if isinstance(item, Paragraph):
+            html += render_paragraph(item, in_list=True)
+            html += "<br>"
+        elif isinstance(item, BlockQuotes):
+            html += render_blockQuote(item, nested=True)
+    return html
+
+''' old implementation kept for reference
 def render_subBlockQuote(block):
     if block.text == "\n":
         return "<br>"
     return block.text   
-
+'''
 def render_image(block):
     try:
         moveImage(block.url)
@@ -101,27 +118,51 @@ def render_codeblock(codeblock):
 def render_list(l, in_list=False, indent_level=0):
     html = ''
     indent = '\t' * indent_level  # Indentation based on the current level
+    if not l.ordered:
+        if not in_list:
+            html += indent + '<ul>\n'  # Start of the outermost <ul> tag
 
-    if not in_list:
-        html += indent + '<ul>\n'  # Start of the outermost <ul> tag
+        if isinstance(l, List):
+            items = l.items if isinstance(l.items, list) else [l.items]  # Ensure items is always a list
+            
+            for item in items:
+                if item is not None:
+                    if isinstance(item, List):
+                        subindent = '\t' * (indent_level + 1)  # Indentation for nested lists
+                        html += subindent + '<ul>\n'
+                        html += render_list(item, in_list=True, indent_level=indent_level + 1)  # Recursive call for nested lists
+                        html += subindent + '</ul>\n'
+                    else:
+                        itemText = render_item(item)
+                        if itemText != None:
+                            html += indent + '\t<li>\n' + indent + '\t\t' + render_item(item) + '\n' + indent + '\t</li>\n'
 
-    if isinstance(l, List):
-        items = l.items if isinstance(l.items, list) else [l.items]  # Ensure items is always a list
-        
-        for item in items:
-            if item is not None:
-                if isinstance(item, List):
-                    subindent = '\t' * (indent_level + 1)  # Indentation for nested lists
-                    html += subindent + '<ul>\n'
-                    html += render_list(item, in_list=True, indent_level=indent_level + 1)  # Recursive call for nested lists
-                    html += subindent + '</ul>\n'
-                else:
-                    itemText = render_item(item)
-                    if itemText != None:
-                        html += indent + '\t<li>\n' + indent + '\t\t' + render_item(item) + '\n' + indent + '\t</li>\n'
+        if not in_list:
+            html += indent + '</ul>\n'  # End of the outermost <ul> tag
+    else:
+        if not in_list:
+            html += indent + '<ol>\n'  # Start of the outermost <ul> tag
 
-    if not in_list:
-        html += indent + '</ul>\n'  # End of the outermost <ul> tag
+        if isinstance(l, List):
+            items = l.items if isinstance(l.items, list) else [l.items]  # Ensure items is always a list
+            
+            for item in items:
+                if item is not None:
+                    if isinstance(item, List):
+                        subindent = '\t' * (indent_level + 1)  # Indentation for nested lists
+                        html += subindent + '<ol>\n'
+                        html += render_list(item, in_list=True, indent_level=indent_level + 1)  # Recursive call for nested lists
+                        html += subindent + '</ol>\n'
+                    else:
+                        itemText = render_item(item)
+                        if itemText != None:
+                            if l.ol_value != "":
+                                html += indent + '\t<li value="'+ l.ol_value +'">\n' + indent + '\t\t' + render_item(item) + '\n' + indent + '\t</li>\n'
+                            else:
+                                html += indent + '\t<li>\n' + indent + '\t\t' + render_item(item) + '\n' + indent + '\t</li>\n'
+
+        if not in_list:
+            html += indent + '</ol>\n'  # End of the outermost <ul> tag
 
     return html
 
@@ -203,6 +244,7 @@ def mark(MdFile):
                 rawMD = rawMD[1:]
             rawMD = ''.join(rawMD)
             markdown = parseMD(rawMD)
+            ##call templater to generate final blog
             with open('./out/%s.html' % dePathedFilename.split('.')[0], 'w') as html_f:
                 html_f.write(render(markdown))
             if pw != "":

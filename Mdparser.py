@@ -44,11 +44,18 @@ def split_into_blocks(string):
 def parse_block_quotes(lines):
     
     quotes = []
-    current_quote = ''
+    quote_content = ''
     was_quote = False
     for line in lines:
         #if re.sub(r"^(\s*\t*>+[\s*>*]*)", "", line) is not "":
-        quotes.append(BlockQuote(re.sub(r"^(\s*\t*>+[\s*>*]*)", "", line) + "\n", count_block_quotes(line)))
+        cleaned_line = re.sub(r"^(\s*\t*>)", "", line).strip() + "\n"
+        quote_content += cleaned_line
+
+    inner_MD = [parseBlock(block) for block in split_into_blocks(quote_content)]
+
+
+
+    quotes.append(BlockQuote(inner_MD, count_block_quotes(line)))
     quotes.append(BlockQuote("", -1))
     
     return BlockQuotes(quotes)
@@ -95,6 +102,22 @@ def parseBlock(block):
 
         
         lists = parse_list_items(lines, [0])
+        return lists
+    
+    #get ordered lists
+        #get lists
+        
+    match = re.match(r'^\s*\d+.\s+', block)
+    if match is not None:
+        lines = re.split(r'\n', block)
+        indents = [len(re.match(r'^\s*', line).group()) for line in lines]
+    
+        
+        if any(indent > 0 for indent in indents):
+            return parse_ol_list_items(lines, indents)
+
+        
+        lists = parse_ol_list_items(lines, [0])
         return lists
     
 
@@ -180,6 +203,38 @@ def parse_list_items(items, indents):
 
     return Paragraph(lists)
 
+def parse_ol_list_items(items, indents):
+    while len(items) > len(indents):
+        indents.append(0)
+
+    lists = []
+    for item, indent in zip(items, indents):
+        if indent == 0:
+            match = re.match(r'^\s*(\d+).\s+', item)
+            if match is not None:
+                lists.append(List([parse_paragraph(re.sub(r"^\s*\d+.","",item, 1).strip())], 0, True, match.group(0)))
+            else:
+                if len(lists) > 0:
+                    lists[len(lists) - 1].items[len(lists[len(lists) - 1].items) - 1].items.append(Text(item.replace("*", "").strip() + "\n"))
+                else:
+                    lists.append(List([parse_paragraph(item.replace("*", "").strip())]))
+        else:
+            match = re.match(r'^\s*(\d+).\s+', item)
+            if match is not None:
+                if len(lists) > 0:
+                    lists[len(lists) - 1].items.append(List([parse_paragraph(re.sub(r"^\s*\d+.","",item, 1).strip())], indent / 4, True, match.group(0)))
+                else:
+                    lists.append(List([List([parse_paragraph(re.sub(r"^\s*\d+.","",item, 1).strip())])], indent / 4, True, match.group(0)))
+            else:
+                if len(lists) > 0:
+                    indenters = "\t" * int(indent / 4)
+                    lists[len(lists) - 1].items[len(lists[len(lists) - 1].items) - 1].items.append(Text(indenters + item.replace("*", "").strip() + "\n"))
+                else:
+                    indenters = "\t" * int(indent / 4)
+                    lists.append(List([parse_paragraph(indenters + item.replace("*", "").strip())],0))
+
+    return Paragraph(lists)
+
 
 
 
@@ -230,9 +285,11 @@ class Paragraph(object):
 
 
 class List(object):
-    def __init__(self, items, level=0):
+    def __init__(self, items, level=0, ordered=False, ol_value=""):
         self.items = items
         self.level = level
+        self.ordered = ordered
+        self.ol_value = ol_value
 
     def __repr__(self):
         return 'List({!r})'.format(self.items)
