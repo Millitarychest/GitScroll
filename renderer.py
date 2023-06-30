@@ -1,13 +1,14 @@
 import os
 import sys
 import shutil
-from Mdparser import parseMD, Markdown, Image, BlockQuotes, BlockQuote, CodeBlock ,Paragraph, Link, List, Text, Emphasis, Bold, Header, HorRule
+from Mdparser import Markdown, Image, BlockQuotes, BlockQuote, CodeBlock ,Paragraph, Link, List, Text, Emphasis, Bold, Header, HorRule
 from html import escape
+
 
 def render(markdown):
     if not isinstance(markdown, Markdown):
         return
-    html = '<div>\n\t<link rel="stylesheet" href="prism.css">\n<link rel="stylesheet" href="darkStyle.css">\n'
+    html = '\t<link rel="stylesheet" href="prism.css">\n<link rel="stylesheet" href="darkStyle.css">\n'
     for block in markdown.blocks:
         if isinstance(block, Paragraph):
             html += render_paragraph(block)
@@ -25,8 +26,34 @@ def render(markdown):
             html += render_blockQuote(block)
         else:
             raise TypeError('Unknown block {!r}'.format(block))
-    html += '</div>\n<script src="prism.js"></script>'
+    html += '<script src="prism.js"></script>'
     return html
+
+def render_in_subdir(markdown, subdir=[]):
+    dotdot = "../" * len(subdir)
+    if not isinstance(markdown, Markdown):
+        return
+    html = '\t<link rel="stylesheet" href="'+dotdot+'prism.css">\n<link rel="stylesheet" href="'+dotdot+'darkStyle.css">\n'
+    for block in markdown.blocks:
+        if isinstance(block, Paragraph):
+            html += render_paragraph(block)
+        elif isinstance(block, List):
+            html += render_list(block)
+        elif isinstance(block, CodeBlock):
+            html += render_codeblock(block)
+        elif isinstance(block, Image):
+            html += render_image(block)
+        elif isinstance(block, List):
+            html += render_list(block, in_list=True)
+        elif isinstance(block, HorRule):
+            html += "<hr>"
+        elif isinstance(block, BlockQuotes):
+            html += render_blockQuote(block)
+        else:
+            raise TypeError('Unknown block {!r}'.format(block))
+    html += '<script src="'+dotdot+'prism.js"></script>'
+    return html
+
 
 def render_blockQuote(block, nested=False):
     itemInsert = ''
@@ -230,54 +257,5 @@ def codeStyling():
 
 
 
-def mark(MdFile):
-    try:
-        pw = ""
-        filename = MdFile
-        dePathedFilename = filename.replace("./in/", "")
-
-        with open(filename, 'r') as f:
-            rawMD = f.readlines()
-            if rawMD[0].startswith("password:"):
-                pw = rawMD[0].split(":")[1].strip()
-                
-                rawMD = rawMD[1:]
-            rawMD = ''.join(rawMD)
-            markdown = parseMD(rawMD)
-            ##call templater to generate final blog
-            with open('./out/%s.html' % dePathedFilename.split('.')[0], 'w') as html_f:
-                html_f.write(render(markdown))
-            if pw != "":
-                encfile('./out/%s.html' % dePathedFilename.split('.')[0], pw)
-            codeStyling()
 
 
-
-    except:
-        pass
-
-
-
-
-# renderer test calls
-if __name__ == '__main__':
-    try:
-        pw = ""
-        filename = sys.argv[1]
-        with open(filename, 'r') as f:
-            rawMD = f.readlines()
-            if rawMD[0].startswith("password:"):
-                pw = rawMD[0].split(":")[1].strip()
-                rawMD = rawMD[1:]
-            rawMD = ''.join(rawMD)
-            markdown = parseMD(rawMD)
-            with open('./out/%s.html' % filename.split('.')[0], 'w') as html_f:
-                html_f.write(render(markdown))
-            if pw != "":
-                encfile('./out/%s.html' % filename.split('.')[0], pw)
-            codeStyling()
-
-
-
-    except IOError:
-        print ("File not found")

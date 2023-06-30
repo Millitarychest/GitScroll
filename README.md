@@ -29,5 +29,5 @@ python3 gitscroll.py <filename>
 
 ### Issues to solve
 
-- N/a
+- copy local ressources that are needed over (e.g. Images etc.)
 
