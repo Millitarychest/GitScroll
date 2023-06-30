@@ -1,21 +1,12 @@
 from renderer import render, encfile, codeStyling, render_in_subdir
-from templater import template_set, template_load_set
+from templater import staticTemplater
 from Mdparser import parseMD
 import os
 
 dir = "./in/"
-company = "Company"
+company = "Millitarychest's Log"
 ignore = []
 index = []
-'''
-index[chapter[section[]],chapter[section[child[]]],chapter[]]
-==>
-chapter =drop down=> section 
-
-chapter =drop down=> section =drop down=> child
-
-chapter
-'''
 
 class Section(object):
     def __init__(self, name, link, children, depth=0):
@@ -82,9 +73,9 @@ def mark(MdFile):
             with open('./out/%s.html' % dePathedFilename.split('.')[0], 'w') as html_f:
                 #print("writing to " + './out/%s.html' % dePathedFilename.split('.')[0])
                 if len(subdirs) < 1:
-                    html_f.write(template_set("Title", company, template_set("Index", generateIndexComponent(index) ,template_load_set('Content', render(markdown), './utils/template/template.html'))))
+                    html_f.write(staticTemplater.template_set("Title", company, staticTemplater.template_set("Index", generateIndexComponent(index) ,staticTemplater.template_load_set('Content', render(markdown), './utils/template/template.html'))))
                 else:
-                    html_f.write(template_set("Title", company, template_set("Index", generateIndexComponent(index, len(subdirs)) ,template_load_set('Content', render_in_subdir(markdown, subdirs), './utils/template/template.html'))))
+                    html_f.write(staticTemplater.template_set("Title", company, staticTemplater.template_set("Index", generateIndexComponent(index, len(subdirs)) ,staticTemplater.template_load_set('Content', render_in_subdir(markdown, subdirs), './utils/template/template.html'))))
             if pw != "":
                 encfile('./out/%s.html' % dePathedFilename.split('.')[0], pw)
             codeStyling()
