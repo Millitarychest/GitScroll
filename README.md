@@ -27,7 +27,9 @@ python3 gitscroll.py <filename>
 * [staticrypt](https://github.com/robinmoisson/staticrypt)
 
 
-### Issues to solve
+### Roadmap
 
-- copy local ressources that are needed over (e.g. Images etc.)
-
+- implement git functionallity
+- ? extract standard html components to one location (eg. components.conf or smth)
+- Webeditor
+- rework default template

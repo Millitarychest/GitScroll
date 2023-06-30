@@ -33,9 +33,9 @@ def get_index(directory, depth=0):
         if filename.endswith(".md"):
             if filename not in ignore:
                 if ((directory + filename).replace("./in/","",1) not in ignore):
-                    ind.append(Section(filename, (directory+filename).replace("./in/","",1) ,[]))
+                    ind.append(Section(filename.replace(".md", ""), (directory+filename).replace("./in/","",1) ,[]))
         elif os.path.isdir(directory +filename):
-            ind.append(Section(filename,"",get_index(directory + filename + "/", depth+1), depth))
+            ind.append(Section(filename.replace(".md", ""),(directory + filename).replace("./in/","",1) ,get_index(directory + filename + "/", depth+1), depth))
     return ind            
 
 
@@ -91,19 +91,34 @@ def mark(MdFile):
     except Exception as e:
         print(e)
 
+def hasSummary(directory):
+    for filename in os.listdir("./in/"+directory):
+        if filename == "SUMMARY.md":
+            return True
+    return False
+
 def generateIndexComponent(index, depth=0):
     def generateSectionLinks(sections, depth=0):
         links = []
         for section in sections:
             if section.children:
-                links.append('<details>\n<summary>{}</summary>\n<ul>\n{}\n</ul>\n</details>'.format(
-                    section.name, generateSectionLinks(section.children)))
-            else:
                 dotDeep = depth - section.depth
                 if dotDeep < 0:
                     dotDeep = 0
                 dots = "../" * dotDeep
-                links.append('<li><a href="./{}">{}</a></li>'.format(dots + section.link.replace(".md", ".html"), section.name))
+                if hasSummary(section.link):
+                    links.append(('<details id="'+ section.name +'" open>\n<summary>{}</summary>\n<ul>\n{}\n</ul>\n</details>').format(
+                        "<a href='"+ dots +section.link + "/SUMMARY.html#" + section.name + "'>" +section.name + "</a>", generateSectionLinks(section.children, depth)))
+                else:
+                    links.append(('<details id="'+ section.name +'" open>\n<summary>{}</summary>\n<ul>\n{}\n</ul>\n</details>').format(
+                        section.name, generateSectionLinks(section.children, depth)))
+            else:
+                if section.name != "SUMMARY":
+                    dotDeep = depth
+                    if dotDeep < 0:
+                        dotDeep = 0
+                    dots = "../" * dotDeep
+                    links.append('<li><a href="./{}">{}</a></li>'.format(dots + section.link.replace(".md", ".html"), section.name))
         return '\n'.join(links)
 
     return generateSectionLinks(index, depth)

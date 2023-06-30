@@ -101,12 +101,12 @@ def render_subBlockQuote(block):
 '''
 def render_image(block):
     try:
-        moveImage(block.url)
+        moveRes(block.url)
     except:
         pass
     return '<img src="%s" alt="%s">' % (block.url, block.alt)
 
-def moveImage(file):
+def moveRes(file):
     shutil.copy(file, "./out/" + file)
 
 def render_paragraph(paragraph, in_list=False):
