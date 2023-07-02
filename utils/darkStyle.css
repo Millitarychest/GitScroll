@@ -1,11 +1,11 @@
 html {
-    background-color: #181a1b !important;
+    background-color: #222831 !important;
 }
 html {
     color-scheme: dark !important;
 }
 html, body, input, textarea, select, button, dialog {
-    background-color: #181a1b;
+    background-color: #222831;
 }
 html, body, input, textarea, select, button {
     border-color: #736b5e;

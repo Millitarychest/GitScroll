@@ -1,9 +1,12 @@
-from renderer import render, encfile, codeStyling, render_in_subdir
+from renderer import render, encfile, codeStyling, render_in_subdir, moveRes
 from templater import staticTemplater
 from Mdparser import parseMD
 import os
+import shutil
 
 dir = "./in/"
+outdir = "./out/"
+tmpDir = "./tmp/"
 company = "Millitarychest's Log"
 ignore = []
 index = []
@@ -23,10 +26,10 @@ def get_index(directory, depth=0):
     for filename in os.listdir(directory):
         if filename.endswith(".md"):
             if filename not in ignore:
-                if ((directory + filename).replace("./in/","",1) not in ignore):
-                    ind.append(Section(filename.replace(".md", ""), (directory+filename).replace("./in/","",1) ,[]))
+                if ((directory + filename).replace(dir,"",1) not in ignore):
+                    ind.append(Section(filename.replace(".md", ""), (directory+filename).replace(dir,"",1) ,[]))
         elif os.path.isdir(directory +filename):
-            ind.append(Section(filename.replace(".md", ""),(directory + filename).replace("./in/","",1) ,get_index(directory + filename + "/", depth+1), depth))
+            ind.append(Section(filename.replace(".md", ""),(directory + filename).replace(dir,"",1) ,get_index(directory + filename + "/", depth+1), depth))
     return ind            
 
 
@@ -35,7 +38,7 @@ def convert(directory):
         
         if filename.endswith(".md"):
             if filename not in ignore:
-                if ((directory + filename).replace("./in/","",1) not in ignore):
+                if ((directory + filename).replace(dir,"",1) not in ignore):
                     mark(directory + filename)
         elif os.path.isdir(directory +filename):
             convert(directory + filename + "/")
@@ -55,7 +58,7 @@ def mark(MdFile):
     try:
         pw = ""
         filename = MdFile
-        dePathedFilename = filename.replace("./in/", "")
+        dePathedFilename = filename.replace(dir, "")
         #print(dePathedFilename)
         with open(filename, 'r') as f:
             rawMD = f.readlines()
@@ -63,27 +66,43 @@ def mark(MdFile):
                 pw = rawMD[0].split(":")[1].strip()
                 rawMD = rawMD[1:]
             rawMD = ''.join(rawMD)
+            print("Converting " + filename)
             markdown = parseMD(rawMD)
             ##call templater to generate final blog
             subdirs = dePathedFilename.split('/')
             subdirs.pop()
             if len(subdirs) > 0:
-                if not os.path.exists("./out/" + "/".join(subdirs)):
-                    os.makedirs("./out/" + "/".join(subdirs))
-            with open('./out/%s.html' % dePathedFilename.split('.')[0], 'w') as html_f:
-                #print("writing to " + './out/%s.html' % dePathedFilename.split('.')[0])
-                if len(subdirs) < 1:
-                    html_f.write(staticTemplater.template_set("Title", company, staticTemplater.template_set("Index", generateIndexComponent(index) ,staticTemplater.template_load_set('Content', render(markdown), './utils/template/template.html'))))
-                else:
-                    html_f.write(staticTemplater.template_set("Title", company, staticTemplater.template_set("Index", generateIndexComponent(index, len(subdirs)) ,staticTemplater.template_load_set('Content', render_in_subdir(markdown, subdirs), './utils/template/template.html'))))
+                if not os.path.exists(outdir + "/".join(subdirs)):
+                    os.makedirs(outdir + "/".join(subdirs))
+            if pw == "":
+                with open(outdir + '%s.html' % dePathedFilename.split('.')[0], 'w') as html_f:
+                    #print("writing to " + './out/%s.html' % dePathedFilename.split('.')[0])
+                    if len(subdirs) < 1:
+                        html_f.write(staticTemplater.template_set("Title", company, staticTemplater.template_set("Index", generateIndexComponent(index) ,staticTemplater.template_load_set('Content', render(markdown), './utils/template/template.html'))))
+                    else:
+                        html_f.write(staticTemplater.template_set("Title", company, staticTemplater.template_set("Index", generateIndexComponent(index, len(subdirs)) ,staticTemplater.template_load_set('Content', render_in_subdir(markdown, subdirs), './utils/template/template.html'))))
             if pw != "":
-                encfile('./out/%s.html' % dePathedFilename.split('.')[0], pw)
+                with open(tmpDir + '%s.html' % dePathedFilename.split('.')[0], 'w') as html_f:
+                    #print("writing to " + './out/%s.html' % dePathedFilename.split('.')[0])
+                    if len(subdirs) < 1:
+                        html_f.write(render(markdown))
+                    else:
+                        html_f.write(render_in_subdir(markdown, subdirs))
+                encfile(tmpDir + '%s.html' % dePathedFilename.split('.')[0], pw)
+                enc_file = moveRes(tmpDir + '%s.html' % dePathedFilename.split('.')[0], '%s_enc.html' % dePathedFilename.split('.')[0] )
+                with open(outdir + '%s.html' % dePathedFilename.split('.')[0], 'w') as html_f:
+                    #print("writing to " + './out/%s.html' % dePathedFilename.split('.')[0])
+                    if len(subdirs) < 1:
+                        html_f.write(staticTemplater.template_set("Title", company, staticTemplater.template_set("Index", generateIndexComponent(index) ,staticTemplater.template_load_set('Content', enc_file, './utils/template/template_framed.html'))))
+                    else:
+                        html_f.write(staticTemplater.template_set("Title", company, staticTemplater.template_set("Index", generateIndexComponent(index, len(subdirs)) ,staticTemplater.template_load_set('Content', enc_file, './utils/template/template_framed.html'))))
+
             codeStyling()
     except Exception as e:
         print(e)
 
 def hasSummary(directory):
-    for filename in os.listdir("./in/"+directory):
+    for filename in os.listdir(dir+directory):
         if filename == "SUMMARY.md":
             return True
     return False
@@ -114,7 +133,22 @@ def generateIndexComponent(index, depth=0):
 
     return generateSectionLinks(index, depth)
 
+def cleanup():
+    if os.path.exists(tmpDir):
+        shutil.rmtree(tmpDir)
+    if os.path.exists(outdir):
+        shutil.rmtree(outdir)
+    os.makedirs(tmpDir)
+    os.makedirs(outdir)
 
+def cleanupTmp():
+    if os.path.exists(tmpDir):
+        shutil.rmtree(tmpDir)
+    os.makedirs(tmpDir)
+
+
+cleanup()
 ignore = loadIgnore(dir)
 index = get_index(dir)
 convert(dir)
+cleanupTmp()
