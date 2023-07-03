@@ -18,8 +18,8 @@ Take notes, write documentation or host a blog. GitScroll enables you to create 
 
 ```bash
  
-python3 gitscroll.py <filename>
-
+python3 gitscroll.py
+ 
 ```
 
 ### Dependencies:

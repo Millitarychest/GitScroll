@@ -40,8 +40,18 @@ def convert(directory):
             if filename not in ignore:
                 if ((directory + filename).replace(dir,"",1) not in ignore):
                     mark(directory + filename)
+                else:
+                    print("Ignoring file " + filename)
+            else:
+                print("Ignoring file " + filename)
         elif os.path.isdir(directory +filename):
-            convert(directory + filename + "/")
+            if filename not in ignore:
+                if ((directory + filename).replace(dir,"",1) not in ignore):
+                    convert(directory + filename + "/")
+                else:
+                    print("Ignoring folder " + filename)
+            else:
+                print("Ignoring folder " + filename)
 
 def loadIgnore(directory):
     ig = []
@@ -49,9 +59,9 @@ def loadIgnore(directory):
         lines = file.readlines()
         for line in lines:
             if line.startswith("*"):
-                ig.append(line.replace("*", "").replace("\n", ""))
+                ig.append(line.replace("*", "").replace("\n", "")) #if * is at the start of the line, ignore the file everywhere
             else:
-                ig.append(line.replace("\n", ""))
+                ig.append(line.replace("\n", "")) # else ignore only if exact path is matched
     return ig
 
 def mark(MdFile):
@@ -146,9 +156,16 @@ def cleanupTmp():
         shutil.rmtree(tmpDir)
     os.makedirs(tmpDir)
 
+def startup():
+    cleanup()
+    ignore = loadIgnore(dir)
+    index = get_index(dir)
+    convert(dir)
+    cleanupTmp()
 
-cleanup()
-ignore = loadIgnore(dir)
-index = get_index(dir)
-convert(dir)
-cleanupTmp()
+if __name__ == "__main__":
+    cleanup()
+    ignore = loadIgnore(dir)
+    index = get_index(dir)
+    convert(dir)
+    cleanupTmp()
