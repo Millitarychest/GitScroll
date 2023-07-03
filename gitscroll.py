@@ -143,6 +143,32 @@ def generateIndexComponent(index, depth=0):
 
     return generateSectionLinks(index, depth)
 
+def generateEditIndexComponent(index, depth=0):
+    def generateEditSectionLinks(sections, depth=0):
+        links = []
+        for section in sections:
+            if section.children:
+                dotDeep = depth - section.depth
+                if dotDeep < 0:
+                    dotDeep = 0
+                dots = "../" * dotDeep
+                if hasSummary(section.link):
+                    links.append(('<details id="'+ section.name +'" open>\n<summary>{}</summary>\n<ul>\n{}\n</ul>\n</details>').format(
+                        "<a href='/edit?site="+ dots +section.link + "/SUMMARY.html#" + section.name + "'>" +section.name + "</a>", generateEditSectionLinks(section.children, depth)))
+                else:
+                    links.append(('<details id="'+ section.name +'" open>\n<summary>{}</summary>\n<ul>\n{}\n</ul>\n</details>').format(
+                        section.name, generateEditSectionLinks(section.children, depth)))
+            else:
+                if section.name != "SUMMARY":
+                    dotDeep = depth
+                    if dotDeep < 0:
+                        dotDeep = 0
+                    dots = "../" * dotDeep
+                    links.append('<li><a href="/edit?site={}">{}</a></li>'.format(dots + section.link, section.name))
+        return '\n'.join(links)
+
+    return generateEditSectionLinks(index, depth) + '<li><a href="/add">{}</a></li>'.format( "Add new post")
+
 def cleanup():
     if os.path.exists(tmpDir):
         shutil.rmtree(tmpDir)
