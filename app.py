@@ -29,6 +29,7 @@ def addEditor():
 
 
 def load_file(path):
+    path = path.replace("..", "")
     with open("./in/"+path, 'r') as f:
         return f.read()
 
