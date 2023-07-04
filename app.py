@@ -1,3 +1,4 @@
+import os
 from flask import Flask, redirect, render_template, request
 from gitscroll import get_index, generateEditIndexComponent, company
 
@@ -29,9 +30,18 @@ def addEditor():
 
 
 def load_file(path):
-    path = path.replace("..", "")
-    with open("./in/"+path, 'r') as f:
-        return f.read()
+    try:
+        base = os.path.realpath("./in/")
+        cleanPath = os.path.realpath("./in/" + path)
+        prefix = os.path.commonpath([base, cleanPath])
+        if prefix == base:
+            with open(cleanPath, 'r') as f:
+                return f.read()
+        return "File not found"
+    except:
+        print("File not found")
+        return "File not found"
+    
 
 def save_file(path, content):
     with open("./in/"+path, 'w') as f:
