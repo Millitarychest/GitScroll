@@ -22,6 +22,7 @@ class Section(object):
         return 'Section({!r})({})'.format(self.name, self.children)
 
 def get_index(directory, depth=0):
+    ignore = loadIgnore(dir)
     ind = []
     for filename in os.listdir(directory):
         if filename.endswith(".md"):
@@ -29,7 +30,9 @@ def get_index(directory, depth=0):
                 if ((directory + filename).replace(dir,"",1) not in ignore):
                     ind.append(Section(filename.replace(".md", ""), (directory+filename).replace(dir,"",1) ,[]))
         elif os.path.isdir(directory +filename):
-            ind.append(Section(filename.replace(".md", ""),(directory + filename).replace(dir,"",1) ,get_index(directory + filename + "/", depth+1), depth))
+            if filename not in ignore:
+                if ((directory + filename).replace(dir,"",1) not in ignore):
+                        ind.append(Section(filename.replace(".md", ""),(directory + filename).replace(dir,"",1) ,get_index(directory + filename + "/", depth+1), depth))
     return ind            
 
 
@@ -75,6 +78,9 @@ def mark(MdFile):
             if rawMD[0].startswith("password:"):
                 pw = rawMD[0].split(":")[1].strip()
                 rawMD = rawMD[1:]
+            if not next((s for s in rawMD if s), filename).startswith("#"):
+                rawMD.insert(0, "# " + dePathedFilename.replace(".md", "") + "\n\n")
+                print("Adding title to " + dePathedFilename)
             rawMD = ''.join(rawMD)
             print("Converting " + filename)
             markdown = parseMD(rawMD)

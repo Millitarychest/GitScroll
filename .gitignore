@@ -4,3 +4,5 @@ __pycache__/
 .staticrypt.json
 
 .dccache
+
+in/.obsidian/
