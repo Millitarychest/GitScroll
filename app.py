@@ -1,6 +1,6 @@
 import os
 from flask import Flask, redirect, render_template, request
-from gitscroll import get_index, generateEditIndexComponent, company
+from gitscroll import get_index, generateEditIndexComponent, company, startup
 
 
 app = Flask(__name__, static_url_path='', static_folder='templates/blog')
@@ -22,7 +22,6 @@ def editor():
 @app.route("/add", methods =["GET", "POST"])
 def addEditor():
     if request.method == "POST":
-        print(request.form.get('file').replace("\r", ""))
         save_file(request.form.get('file').replace("\r", "") + ".md", request.form.get('content').replace("\r", ""))
         return redirect("/edit?site=" + request.form.get('file').replace("\r", "") + ".md")
     text = "HI!!"
@@ -44,8 +43,17 @@ def load_file(path):
     
 
 def save_file(path, content):
-    with open("./in/"+path, 'w') as f:
-        return f.write(content)
+    try:
+        base = os.path.realpath("./in/")
+        cleanPath = os.path.realpath("./in/" + path)
+        prefix = os.path.commonpath([base, cleanPath])
+        if prefix == base:
+            with open("./in/"+path, 'w') as f:
+                return f.write(content)
+        return "File not found"
+    except:
+        print("File not found")
+        return "File not found"
 
 def set_index():
     links = []
@@ -56,4 +64,5 @@ def set_index():
 
 
 if __name__ == '__main__':
+    startup()
     app.run(debug=True)

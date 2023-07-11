@@ -33,3 +33,9 @@ python3 gitscroll.py
 - implement git functionallity
 - ? extract standard html components to one location (eg. components.conf or smth)
 - Webeditor
+
+### Issues
+
+- images not recognized if no alt text
+- images not copied
+- relative links are broken
