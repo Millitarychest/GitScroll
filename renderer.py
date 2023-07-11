@@ -4,11 +4,11 @@ import shutil
 from Mdparser import Markdown, Image, BlockQuotes, BlockQuote, CodeBlock ,Paragraph, Link, List, Text, Emphasis, Bold, Header, HorRule
 from html import escape
 
-outdir = "./out/"
+outDir = "./out/"
 tmpDir = "./tmp/"
+subDir = ""
 
 def render(markdown):
-    print("Rendering in root directory")
     if not isinstance(markdown, Markdown):
         return
     html = '\t<link rel="stylesheet" href="prism.css">\n<link rel="stylesheet" href="darkStyle.css">\n'
@@ -33,7 +33,9 @@ def render(markdown):
     return html
 
 def render_in_subdir(markdown, subdir=[]):
-    print("Rendering in subdirectory " + str(subdir))
+    global subDir 
+    pathdir = subdir + [""]
+    subDir = "/".join(pathdir)
     dotdot = "../" * len(subdir)
     if not isinstance(markdown, Markdown):
         return
@@ -111,9 +113,11 @@ def render_image(block):
     return '<img src="%s" alt="%s">' % (block.url, block.alt)
 
 def moveRes(file, outfile=""):
+    global subDir
     if outfile == "":
         outfile = file
-    shutil.copy(file, outdir + outfile)
+    file = subDir + file
+    shutil.copy("./in/" + file, outDir + subDir + outfile)
     return outfile
 
 def render_paragraph(paragraph, in_list=False):
@@ -216,9 +220,6 @@ def render_item(item):
 
 
 
-
-
-
 def render_header(header):
     level = header.level
     html = ''
@@ -250,7 +251,6 @@ def render_text(text):
 
 
 
-
 def encfile(filename, pw):
     print("Encrypting " + filename)
     # Encrypt file
@@ -258,9 +258,9 @@ def encfile(filename, pw):
 
 def codeStyling():
     # Code styling
-    shutil.copyfile("./utils/darkStyle.css", outdir+"darkStyle.css")
-    shutil.copyfile("./utils/prism_dark.css", outdir+"prism.css")
-    shutil.copyfile("./utils/prism_dark.js", outdir+"prism.js")
+    shutil.copyfile("./utils/darkStyle.css", outDir+"darkStyle.css")
+    shutil.copyfile("./utils/prism_dark.css", outDir+"prism.css")
+    shutil.copyfile("./utils/prism_dark.js", outDir+"prism.js")
 
 
 

@@ -36,6 +36,3 @@ python3 gitscroll.py
 
 ### Issues
 
-- images not recognized if no alt text
-- images not copied
-- relative links are broken

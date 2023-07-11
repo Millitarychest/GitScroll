@@ -37,6 +37,7 @@ def get_index(directory, depth=0):
 
 
 def convert(directory):
+    
     for filename in os.listdir(directory):
         
         if filename.endswith(".md"):
@@ -71,43 +72,42 @@ def mark(MdFile):
     try:
         pw = ""
         filename = MdFile
-        dePathedFilename = filename.replace(dir, "")
-        #print(dePathedFilename)
+        deInPathedFilename = filename.replace(dir, "")
+        dePathedFile = deInPathedFilename.split("/")[-1]
+        #print(deInPathedFilename)
         with open(filename, 'r') as f:
             rawMD = f.readlines()
             if rawMD[0].startswith("password:"):
                 pw = rawMD[0].split(":")[1].strip()
                 rawMD = rawMD[1:]
             if not next((s for s in rawMD if s), filename).startswith("#"):
-                rawMD.insert(0, "# " + dePathedFilename.replace(".md", "") + "\n\n")
-                print("Adding title to " + dePathedFilename)
+                rawMD.insert(0, "# " + dePathedFile.replace(".md", "") + "\n\n")
             rawMD = ''.join(rawMD)
-            print("Converting " + filename)
             markdown = parseMD(rawMD)
             ##call templater to generate final blog
-            subdirs = dePathedFilename.split('/')
+            subdirs = deInPathedFilename.split('/')
             subdirs.pop()
             if len(subdirs) > 0:
                 if not os.path.exists(outdir + "/".join(subdirs)):
                     os.makedirs(outdir + "/".join(subdirs))
             if pw == "":
-                with open(outdir + '%s.html' % dePathedFilename.split('.')[0], 'w') as html_f:
-                    #print("writing to " + './out/%s.html' % dePathedFilename.split('.')[0])
+                with open(outdir + '%s.html' % deInPathedFilename.split('.')[0], 'w') as html_f:
+                    #print("writing to " + './out/%s.html' % deInPathedFilename.split('.')[0])
                     if len(subdirs) < 1:
                         html_f.write(staticTemplater.template_set("Title", company, staticTemplater.template_set("Index", generateIndexComponent(index) ,staticTemplater.template_load_set('Content', render(markdown), './utils/template/template.html'))))
                     else:
                         html_f.write(staticTemplater.template_set("Title", company, staticTemplater.template_set("Index", generateIndexComponent(index, len(subdirs)) ,staticTemplater.template_load_set('Content', render_in_subdir(markdown, subdirs), './utils/template/template.html'))))
             if pw != "":
-                with open(tmpDir + '%s.html' % dePathedFilename.split('.')[0], 'w') as html_f:
-                    #print("writing to " + './out/%s.html' % dePathedFilename.split('.')[0])
+                with open(tmpDir + '%s.html' % deInPathedFilename.split('.')[0], 'w') as html_f:
+                    #print("writing to " + './out/%s.html' % deInPathedFilename.split('.')[0])
                     if len(subdirs) < 1:
                         html_f.write(render(markdown))
                     else:
                         html_f.write(render_in_subdir(markdown, subdirs))
-                encfile(tmpDir + '%s.html' % dePathedFilename.split('.')[0], pw)
-                enc_file = moveRes(tmpDir + '%s.html' % dePathedFilename.split('.')[0], '%s_enc.html' % dePathedFilename.split('.')[0] )
-                with open(outdir + '%s.html' % dePathedFilename.split('.')[0], 'w') as html_f:
-                    #print("writing to " + './out/%s.html' % dePathedFilename.split('.')[0])
+                encfile(tmpDir + '%s.html' % deInPathedFilename.split('.')[0], pw)
+                enc_file = moveRes(tmpDir + '%s.html' % deInPathedFilename.split('.')[0], '%s_enc.html' % deInPathedFilename.split('.')[0] )
+                with open(outdir + '%s.html' % deInPathedFilename.split('.')[0], 'w') as html_f:
+                    #print("writing to " + './out/%s.html' % deInPathedFilename.split('.')[0])
                     if len(subdirs) < 1:
                         html_f.write(staticTemplater.template_set("Title", company, staticTemplater.template_set("Index", generateIndexComponent(index) ,staticTemplater.template_load_set('Content', enc_file, './utils/template/template_framed.html'))))
                     else:
@@ -134,7 +134,7 @@ def generateIndexComponent(index, depth=0):
                 dots = "../" * dotDeep
                 if hasSummary(section.link):
                     links.append(('<details id="'+ section.name +'" open>\n<summary>{}</summary>\n<ul>\n{}\n</ul>\n</details>').format(
-                        "<a href='"+ dots +section.link + "/SUMMARY.html#" + section.name + "'>" +section.name + "</a>", generateSectionLinks(section.children, depth)))
+                        "<a href='/"+section.link + "/SUMMARY.html'>" +section.name + "</a>", generateSectionLinks(section.children, depth)))
                 else:
                     links.append(('<details id="'+ section.name +'" open>\n<summary>{}</summary>\n<ul>\n{}\n</ul>\n</details>').format(
                         section.name, generateSectionLinks(section.children, depth)))
@@ -144,7 +144,7 @@ def generateIndexComponent(index, depth=0):
                     if dotDeep < 0:
                         dotDeep = 0
                     dots = "../" * dotDeep
-                    links.append('<li><a href="./{}">{}</a></li>'.format(dots + section.link.replace(".md", ".html"), section.name))
+                    links.append('<li><a href="/{}">{}</a></li>'.format(section.link.replace(".md", ".html"), section.name))
         return '\n'.join(links)
 
     return generateSectionLinks(index, depth)
@@ -160,7 +160,7 @@ def generateEditIndexComponent(index, depth=0):
                 dots = "../" * dotDeep
                 if hasSummary(section.link):
                     links.append(('<details id="'+ section.name +'" open>\n<summary>{}</summary>\n<ul>\n{}\n</ul>\n</details>').format(
-                        "<a href='/edit?site="+ dots +section.link + "/SUMMARY.html#" + section.name + "'>" +section.name + "</a>", generateEditSectionLinks(section.children, depth)))
+                        "<a href='/edit?site="+ dots +section.link + "/SUMMARY.md'>" +section.name + "</a>", generateEditSectionLinks(section.children, depth)))
                 else:
                     links.append(('<details id="'+ section.name +'" open>\n<summary>{}</summary>\n<ul>\n{}\n</ul>\n</details>').format(
                         section.name, generateEditSectionLinks(section.children, depth)))
@@ -190,8 +190,11 @@ def cleanupTmp():
 
 def startup():
     cleanup()
+    global ignore
+    global index
     ignore = loadIgnore(dir)
     index = get_index(dir)
+    print("[*] Converting files")
     convert(dir)
     cleanupTmp()
 
@@ -199,5 +202,6 @@ if __name__ == "__main__":
     cleanup()
     ignore = loadIgnore(dir)
     index = get_index(dir)
+    print("[*] Converting files")
     convert(dir)
     cleanupTmp()

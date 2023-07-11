@@ -133,7 +133,7 @@ def parseBlock(block):
         code = block.strip("`\n")
         return CodeBlock(code)
     # get images
-    match = re.match(r'^!\[([^\]]+)\]\(([^)]+)\)$', block)
+    match = re.match(r'^!\[([^\]]*)\]\(([^)]+)\)$', block)
     if match is not None:
         alt_text = match.group(1)
         image_url = match.group(2)
@@ -141,7 +141,7 @@ def parseBlock(block):
     return parse_paragraph(block)
 
 def parse_paragraph(block):
-    inlines_regex = '(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*|!\\[[^\\]]+\\]\\([^\\)]+\\)|\\[[^\\]]+\\]\\([^\\)]+\\)|`[^`]+`)'
+    inlines_regex = '(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*|!\\[[^\\]]*\\]\\([^\\)]+\\)|\\[[^\\]]+\\]\\([^\\)]+\\)|`[^`]+`)'
     #inlines_regex = '(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*|!\\[[^\\]]+\\]\\([^\\)]+\\))'
     #inlines_regex = '(\\*\\*[^\\*]*\\*\\*|\\*[^\\*]*\\*)'
     parts = re.split(inlines_regex, block)  # split out Emphasis and Bold

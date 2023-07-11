@@ -7,7 +7,7 @@ app = Flask(__name__, static_url_path='', static_folder='templates/blog')
 
 @app.route("/")
 def blog():
-    return render_template("blog/" + get_index("./in/")[0].link.replace(".md", ".html"))
+    return render_template("blog/" + getIndexLink())
 
 @app.route("/edit", methods =["GET", "POST"])
 def editor():
@@ -27,6 +27,11 @@ def addEditor():
     text = "HI!!"
     return render_template('editor/add.html', Index=set_index(), Content=text, Title=company)
 
+def getIndexLink():
+    sections = get_index("./in/")
+    for section in sections:
+        if section.link.endswith(".md"):
+            return section.link.replace(".md", ".html")
 
 def load_file(path):
     try:
