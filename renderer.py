@@ -6,9 +6,16 @@ from html import escape
 
 outDir = "./out/"
 tmpDir = "./tmp/"
+inDir = "./in/"
 subDir = ""
 
-def render(markdown):
+def render(markdown, inPath, outPath, tmpPath):
+    global outDir
+    global inDir
+    global tmpDir
+    tmpDir = tmpPath
+    inDir = inPath
+    outDir = outPath
     if not isinstance(markdown, Markdown):
         return
     html = '\t<link rel="stylesheet" href="prism.css">\n<link rel="stylesheet" href="darkStyle.css">\n'
@@ -32,7 +39,13 @@ def render(markdown):
     html += '<script src="prism.js"></script>'
     return html
 
-def render_in_subdir(markdown, subdir=[]):
+def render_in_subdir(markdown, inPath, outPath, tmpPath, subdir=[]):
+    global outDir
+    global inDir
+    global tmpDir
+    tmpDir = tmpPath
+    inDir = inPath
+    outDir = outPath
     global subDir 
     pathdir = subdir + [""]
     subDir = "/".join(pathdir)

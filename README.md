@@ -30,9 +30,10 @@ python3 gitscroll.py
 
 ### Roadmap
 
-- implement git functionallity
+- Implement custom sorting for files in index
 - ? extract standard html components to one location (eg. components.conf or smth)
-- Webeditor
+- Webeditor (image pasting / uploading)
 
 ### Issues
 
+-fix the stupid summary thing (open or not remembering etc)

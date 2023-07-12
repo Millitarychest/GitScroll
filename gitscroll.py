@@ -7,7 +7,7 @@ import shutil
 dir = "./in/"
 outdir = "./out/"
 tmpDir = "./tmp/"
-company = "Millitarychest's Log"
+company = "GitScroll"
 ignore = []
 index = []
 
@@ -94,16 +94,16 @@ def mark(MdFile):
                 with open(outdir + '%s.html' % deInPathedFilename.split('.')[0], 'w') as html_f:
                     #print("writing to " + './out/%s.html' % deInPathedFilename.split('.')[0])
                     if len(subdirs) < 1:
-                        html_f.write(staticTemplater.template_set("Title", company, staticTemplater.template_set("Index", generateIndexComponent(index) ,staticTemplater.template_load_set('Content', render(markdown), './utils/template/template.html'))))
+                        html_f.write(staticTemplater.template_set("Title", company, staticTemplater.template_set("Index", generateIndexComponent(index) ,staticTemplater.template_load_set('Content', render(markdown, dir, outdir, tmpDir), './utils/template/template.html'))))
                     else:
-                        html_f.write(staticTemplater.template_set("Title", company, staticTemplater.template_set("Index", generateIndexComponent(index, len(subdirs)) ,staticTemplater.template_load_set('Content', render_in_subdir(markdown, subdirs), './utils/template/template.html'))))
+                        html_f.write(staticTemplater.template_set("Title", company, staticTemplater.template_set("Index", generateIndexComponent(index, len(subdirs)) ,staticTemplater.template_load_set('Content', render_in_subdir(markdown, dir, outdir, tmpDir, subdirs), './utils/template/template.html'))))
             if pw != "":
                 with open(tmpDir + '%s.html' % deInPathedFilename.split('.')[0], 'w') as html_f:
                     #print("writing to " + './out/%s.html' % deInPathedFilename.split('.')[0])
                     if len(subdirs) < 1:
-                        html_f.write(render(markdown))
+                        html_f.write(render(markdown, dir, outdir, tmpDir))
                     else:
-                        html_f.write(render_in_subdir(markdown, subdirs))
+                        html_f.write(render_in_subdir(markdown, dir, outdir, tmpDir, subdirs))
                 encfile(tmpDir + '%s.html' % deInPathedFilename.split('.')[0], pw)
                 enc_file = moveRes(tmpDir + '%s.html' % deInPathedFilename.split('.')[0], '%s_enc.html' % deInPathedFilename.split('.')[0] )
                 with open(outdir + '%s.html' % deInPathedFilename.split('.')[0], 'w') as html_f:
@@ -188,13 +188,26 @@ def cleanupTmp():
         shutil.rmtree(tmpDir)
     os.makedirs(tmpDir)
 
-def startup():
+def startup(input, output, tmp, title):
+    #set globals
+    global dir
+    global outdir
+    global tmpDir
+    global company
+    dir = input
+    outdir = output
+    tmpDir = tmp
+    company = title
+
+    #prep
     cleanup()
     global ignore
     global index
     ignore = loadIgnore(dir)
     index = get_index(dir)
-    print("[*] Converting files")
+    
+    #parse
+    print(">Converting files")
     convert(dir)
     cleanupTmp()
 
@@ -202,6 +215,6 @@ if __name__ == "__main__":
     cleanup()
     ignore = loadIgnore(dir)
     index = get_index(dir)
-    print("[*] Converting files")
+    print(">Converting files")
     convert(dir)
     cleanupTmp()

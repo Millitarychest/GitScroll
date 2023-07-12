@@ -1,5 +1,0 @@
-# Millitarychest Blog
-
-
-
-### coming soon

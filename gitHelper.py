@@ -6,7 +6,7 @@ def update(path):
 def setup_from_remote(url, path):
     os.system("git clone " + url + " " + path)
 
-def setup_from_local(path, remote):
+def setup_local(path, remote):
     os.system("git -C " + path + " init")
     os.system("git -C " + path + " add .")
     os.system("git -C " + path + " commit -m \"Initial commit\"")
@@ -18,3 +18,4 @@ def push(path):
     os.system("git -C " + path + " add .")
     os.system("git -C " + path + " commit -m \"Blog Update\"")
     os.system("git -C " + path + " push -u origin main")
+
