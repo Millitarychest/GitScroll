@@ -23,6 +23,7 @@ app = Flask(__name__, static_url_path='', static_folder='templates/blog')
 def blog():
     return render_template("blog/" + getIndexLink())
 
+
 @app.route("/edit", methods =["GET", "POST"])
 def editor():
     if request.method == "POST":
@@ -40,6 +41,8 @@ def addEditor():
         return redirect("/edit?site=" + request.form.get('file').replace("\r", "") + ".md")
     text = "HI!!"
     return render_template('editor/add.html', Index=set_index(), Content=text, Title=arg_company)
+
+
 
 #helper functions
 def getIndexLink():

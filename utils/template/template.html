@@ -123,5 +123,30 @@
             <br>
             <br>
         </div>
+
+        <script>
+            // Function to handle details elements toggle
+            function handleDetailsToggle() {
+                var detailsElements = document.querySelectorAll('details');
+        
+                // Add event listener to each details element
+                detailsElements.forEach(function (details) {
+                    details.addEventListener('toggle', function () {
+                        // Store the open state in localStorage
+                        localStorage.setItem(details.id, details.open);
+                    });
+        
+                    // Restore the open state from localStorage
+                    var isOpen = localStorage.getItem(details.id);
+                    if (isOpen !== null) {
+                        details.open = (isOpen === 'true');
+                    }
+                });
+            }
+        
+            // Call the function when the page is loaded
+            window.addEventListener('load', handleDetailsToggle);
+        </script>
+        
     </body>
 </html>

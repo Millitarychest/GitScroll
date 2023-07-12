@@ -14,13 +14,30 @@ Take notes, write documentation or host a blog. GitScroll enables you to create 
 
 ### Usage:
 
-
-
 ```bash
  
 python3 gitscroll.py
  
 ```
+
+### Markdown function syntax
+
+Set a pages password:
+
+```Markdown
+<-->password:<your_pass><-->
+```
+
+Set a pages position in its section:
+
+```Markdown
+<-->pos:<index><-->
+```
+or
+```markdown
+<-->pos:<index><-->
+```
+
 
 ### Dependencies:
 
@@ -30,10 +47,8 @@ python3 gitscroll.py
 
 ### Roadmap
 
-- Implement custom sorting for files in index
 - ? extract standard html components to one location (eg. components.conf or smth)
-- Webeditor (image pasting / uploading)
+- Webeditor (image pasting / uploading , Permissions / easy position setting)
 
 ### Issues
 
--fix the stupid summary thing (open or not remembering etc)
