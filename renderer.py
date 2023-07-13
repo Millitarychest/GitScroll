@@ -1,4 +1,5 @@
 import os
+import shlex
 import sys
 import shutil
 from Mdparser import Markdown, Image, BlockQuotes, BlockQuote, CodeBlock ,Paragraph, Link, List, Text, Emphasis, Bold, Header, HorRule
@@ -267,7 +268,7 @@ def render_text(text):
 def encfile(filename, pw):
     print("Encrypting " + filename)
     # Encrypt file
-    os.system(("staticrypt %s -p %s -d " + tmpDir + " --short" )% (filename, pw))
+    os.system(("staticrypt %s -p %s -d " + shlex.quote(tmpDir) + " --short" )% (shlex(filename), shlex(pw)))
 
 def codeStyling():
     # Code styling
