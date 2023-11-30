@@ -48,7 +48,7 @@ or
 ### Roadmap
 
 - ? extract standard html components to one location (eg. components.conf or smth)
-- Webeditor (image pasting / uploading , Permissions / easy position setting) https://stackoverflow.com/a/64190649
+- Webeditor (image pasting / uploading , Permissions / easy position setting)
 
 ### Issues
 
