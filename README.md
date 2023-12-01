@@ -15,9 +15,11 @@ Take notes, write documentation or host a blog. GitScroll enables you to create 
 ### Usage:
 
 ```bash
- 
-python3 gitscroll.py
- 
+converter: 
+python gitscroll.py
+
+convert and preview:
+python routes.py
 ```
 
 ### Markdown function syntax
